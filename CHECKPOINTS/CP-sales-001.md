@@ -1,18 +1,15 @@
-# CP-sales-001 — Charles: one-time setup for sales.gershon.ai
+# CP-sales-001 — one-time setup for sales.gershon.ai
 
-status: OPEN ❌
-owner: Charles (Chrome, browser "oattia")
+status: IN PROGRESS ❌
 repo: gershonconsulting/sales
 
-Secrets go into **GitHub → gershonconsulting/sales → Settings → Secrets and variables → Actions → New repository secret**. Never paste them in chat or in a file.
+Deploy route changed 2026-10-07: Cloudflare Workers Builds (Git integration) deploys on every push to main. No GitHub Actions workflow, no Cloudflare API token needed. `deploy/deploy.yml` is kept only as a fallback.
 
-0. ❌ Install the deploy workflow: GitHub web → Add file → Create new file → path `.github/workflows/deploy.yml` → paste the exact content of `deploy/deploy.yml` → Commit to main. (The Claude GitHub integration has no `workflow` scope, so it cannot write this path itself.)
-1. ❌ `CLOUDFLARE_ACCOUNT_ID` — Cloudflare dashboard (account holding the gershon.ai zone) → Account ID.
-2. ❌ `CLOUDFLARE_API_TOKEN` — Cloudflare → My Profile → API Tokens → Create Custom Token: Account › Workers Scripts: Edit; Account › D1: Edit; Account › Workers AI: Read; Zone gershon.ai › Workers Routes: Edit; Zone gershon.ai › DNS: Edit.
-3. ❌ `STREAK_API_KEY` — Streak signed in as oattia@gmail.com (owner of GC Pipeline) → Settings → Integrations → Streak API → Create key.
-4. ❌ `RESEND_API_KEY` — Resend → API Keys → sending key for the verified gershon.ai domain.
-5. ❌ `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` — Google Cloud console (oattia@gmail.com) → enable **Gmail API** → Credentials → OAuth client ID → Web application → authorized redirect URI `https://sales.gershon.ai/oauth/google/callback`. Consent screen: add olivier@gershonconsulting.com as test user.
-6. ❌ GitHub → Actions → "Deploy sales.gershon.ai" → Run workflow. Confirm green and that https://sales.gershon.ai loads.
-7. ❌ On https://sales.gershon.ai (after Olivier has set his password): click **Connect Gmail** → approve with olivier@gershonconsulting.com → click **Sync Streak** → confirm ~113 deals appear.
-
-Close by editing this file: status CLAIMED + evidence (workflow run URL, deal count shown).
+1. ✅ D1 database `sales-db` created (id 33344da0-ae0b-4eae-8d65-7555a3b3612a), schema applied via the D1 console, id committed in wrangler.toml.
+2. ✅ Worker `sales-gershon` created from the repo; first build green; https://sales.gershon.ai returns 200 and /api/me answers {"setup":true}.
+3. ❌ Worker secrets — Cloudflare → Workers & Pages → sales-gershon → Settings → Variables and Secrets → Add (type: Secret). Values must be pasted by a human (Claude is not allowed to type keys into fields):
+   - `STREAK_API_KEY` — Streak (oattia@gmail.com) → Settings → Integrations → Streak API → Create key.
+   - `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` — Google Cloud console (oattia@gmail.com) → enable Gmail API → Credentials → OAuth client ID (Web) → redirect URI `https://sales.gershon.ai/oauth/google/callback`.
+   - `RESEND_API_KEY` — optional (Monday digest); can be dropped if the digest moves to Gmail.
+4. ❌ Olivier: open https://sales.gershon.ai and choose his password (first visit = setup).
+5. ❌ In the app: Connect Gmail (olivier@gershonconsulting.com) → Sync Streak → confirm ~113 deals.
