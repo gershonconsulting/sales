@@ -14,7 +14,7 @@ binding = "AI"
 [[d1_databases]]
 binding = "DB"
 database_name = "sales-db"
-database_id = "__D1_ID__"
+database_id = "33344da0-ae0b-4eae-8d65-7555a3b3612a"
 
 [vars]
 # Streak GC Pipeline (encoded key from the pipeline URL)
