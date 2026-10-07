@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GC Sales — sales.gershon.ai</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📈</text></svg>">
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--fg:#14171f;--muted:#667085;--line:#e4e7ec;--acc:#0b5fff;--warn:#b54708;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1115;--card:#171a21;--fg:#e8eaf0;--muted:#98a2b3;--line:#2a2f3a;--acc:#5b8cff;--warn:#fdb022}}
+*{box-sizing:inherit}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+header{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--card)}
+header h1{font-size:17px;margin:0 12px 0 0}
+nav button{border:0;background:none;color:var(--muted);padding:6px 10px;border-radius:8px;cursor:pointer;font:inherit}
+nav button.on{background:var(--bg);color:var(--fg);font-weight:600}
+.sp{flex:1}.muted{color:var(--muted);font-size:13px}
+.b{border:1px solid var(--line);background:var(--card);color:var(--fg);padding:6px 12px;border-radius:8px;cursor:pointer;font:inherit;text-decoration:none}
+.p{background:var(--acc);color:#fff;border-color:var(--acc)}
+main{max-width:1100px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.wrap{overflow-x:auto}table{border-collapse:collapse;width:100%}td,th{padding:8px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;vertical-align:top}
+.tag{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;background:var(--bg);border:1px solid var(--line)}
+.due{color:var(--warn);font-weight:600}
+#log{min-height:300px;max-height:60vh;overflow:auto}
+.msg{margin:8px 0;white-space:pre-wrap}.msg.u{color:var(--acc)}
+textarea,input{width:100%;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#auth{max-width:380px;margin:10vh auto}
+</style>
+</head>
+<body>
+<div id="auth" class="card" style="display:none">
+  <h2>📈 GC Sales</h2>
+  <p class="muted" id="authHint"></p>
+  <input id="em" type="email" placeholder="Email" value="olivier@gershonconsulting.com"><br><br>
+  <input id="pw" type="password" placeholder="Password"><br><br>
+  <button class="b p" id="authBtn">Continue</button> <span id="authErr" class="muted"></span>
+</div>
+<div id="app" style="display:none">
+<header>
+  <h1>📈 GC Sales</h1>
+  <nav><button data-t="chat" class="on">Chat</button><button data-t="due">Due</button><button data-t="drafts">Drafts</button><button data-t="pipe">Pipeline</button></nav>
+  <span class="sp"></span>
+  <span class="muted" id="status"></span>
+  <button class="b" id="syncBtn">Sync Streak</button>
+  <a class="b" id="gmailBtn" href="/oauth/google/start">Connect Gmail</a>
+</header>
+<main>
+  <section id="t-chat">
+    <div class="card"><div id="log"><div class="msg muted">Ask about the pipeline: “Who should I follow up this week?”, “Where are we with TEPCOMP?”, “Which proposals have been silent for 60+ days?”</div></div></div>
+    <div class="row"><textarea id="q" rows="2" placeholder="Message…" style="flex:1"></textarea><button class="b p" id="send">Send</button></div>
+  </section>
+  <section id="t-due" style="display:none"><div class="card"><div class="row"><b id="dueCount"></b><span class="sp"></span><button class="b" id="weeklyBtn">Draft all due</button></div></div><div class="card wrap"><table id="dueT"></table></div></section>
+  <section id="t-drafts" style="display:none"><div id="draftList"></div></section>
+  <section id="t-pipe" style="display:none"><div class="card wrap"><table id="pipeT"></table></div></section>
+</main>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function api(p,b){const r=await fetch(p,b===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||r.status);return j}
+let deals=[],hist=[];
+async function boot(){
+  const m=await api('/api/me');
+  if(m.setup||!m.auth){
+    $('#auth').style.display='block';
+    $('#authHint').textContent=m.setup?'First visit: choose your password for this app.':'Sign in';
+    $('#authBtn').onclick=async()=>{try{await api(m.setup?'/api/setup':'/api/login',{email:$('#em').value,password:$('#pw').value});location.href='/'}catch(e){$('#authErr').textContent=e.message}};
+    return;
+  }
+  $('#app').style.display='block';
+  $('#gmailBtn').textContent=m.gmail?('Gmail ✓ '+(m.gmailAccount||'')):'Connect Gmail';
+  $('#status').textContent=m.lastSync?('Synced '+new Date(m.lastSync).toLocaleString()):'Not synced yet';
+  await loadPipe();
+}
+async function loadPipe(){
+  try{deals=await api('/api/pipeline')}catch(e){deals=[]}
+  const due=deals.filter(d=>d.due);
+  $('#dueCount').textContent=due.length+' deals due for a follow-up';
+  const head='<tr><th>Deal</th><th>Stage</th><th>Owner</th><th>Silent</th><th></th></tr>';
+  const row=d=>`<tr><td><b>${esc(d.name)}</b><div class="muted">${esc((d.notes||'').slice(0,140))}</div></td><td><span class="tag">${esc(d.stage_name)}</span></td><td>${esc(d.owner||'—')}</td><td class="${d.due?'due':''}">${d.days_silent??'?'}d</td><td><div class="row"><button class="b" onclick="draft('${d.key}','email')">Email</button><button class="b" onclick="draft('${d.key}','linkedin')">LinkedIn</button></div></td></tr>`;
+  $('#dueT').innerHTML=head+due.map(row).join('');
+  $('#pipeT').innerHTML=head+deals.map(row).join('');
+}
+async function draft(key,ch){try{await api('/api/draft',{boxKey:key,channel:ch});show('drafts')}catch(e){alert(e.message)}}
+async function loadDrafts(){
+  const list=await api('/api/drafts');
+  $('#draftList').innerHTML=list.length?list.map(d=>`<div class="card" id="d${d.id}"><div class="row"><b>${esc(d.name)}</b><span class="tag">${d.channel}</span>${d.status==='linkedin_queue'?'<span class="tag">queued for Charles</span>':''}</div>
+  ${d.channel==='email'?`<br><input value="${esc(d.to_addr)}" placeholder="To" data-f="to_addr"><br><br><input value="${esc(d.subject)}" data-f="subject"><br>`:''}<br><textarea rows="7" data-f="body">${esc(d.body)}</textarea><br><br>
+  <div class="row">${d.status==='linkedin_queue'?`<button class="b p" onclick="act(${d.id},'done')">Mark sent</button>`:`<button class="b p" onclick="act(${d.id},'approve')">${d.channel==='email'?'Approve &amp; send':'Approve → LinkedIn queue'}</button>`}<button class="b" onclick="act(${d.id},'reject')">Discard</button></div></div>`).join(''):'<div class="card muted">No drafts waiting.</div>';
+}
+async function act(id,a){const c=$('#d'+id),data={};c.querySelectorAll('[data-f]').forEach(e=>data[e.dataset.f]=e.value);try{await api(`/api/drafts/${id}/${a}`,data);loadDrafts();loadPipe()}catch(e){alert(e.message)}}
+function show(t){document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['chat','due','drafts','pipe'].forEach(x=>$('#t-'+x).style.display=x===t?'block':'none');if(t==='drafts')loadDrafts()}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.t));
+$('#syncBtn').onclick=async()=>{$('#syncBtn').textContent='Syncing…';try{const r=await api('/api/sync',{});$('#status').textContent=r.synced+' deals synced';await loadPipe()}catch(e){alert(e.message)}$('#syncBtn').textContent='Sync Streak'};
+$('#weeklyBtn').onclick=async()=>{$('#weeklyBtn').textContent='Drafting…';try{const r=await api('/api/weekly',{});alert(r.drafts+' drafts created');show('drafts')}catch(e){alert(e.message)}$('#weeklyBtn').textContent='Draft all due'};
+function addMsg(role,text){const el=document.createElement('div');el.className='msg '+(role==='user'?'u':'');let h=esc(text);h=h.replace(/^DRAFT:\s*(.+?)\s*\|\s*(email|linkedin)\s*$/gmi,(m,n,ch)=>{const d=deals.find(x=>x.name.trim().toLowerCase()===n.trim().toLowerCase());return d?`<button class="b" onclick="draft('${d.key}','${ch.toLowerCase()}')">✍️ Draft ${ch} for ${esc(d.name)}</button>`:m});el.innerHTML=h;$('#log').appendChild(el);$('#log').scrollTop=1e9}
+$('#send').onclick=async()=>{const q=$('#q').value.trim();if(!q)return;$('#q').value='';addMsg('user',q);try{const r=await api('/api/chat',{message:q,history:hist});hist.push({role:'user',content:q},{role:'assistant',content:r.reply});addMsg('assistant',r.reply)}catch(e){addMsg('assistant','Error: '+e.message)}};
+$('#q').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#send').click()}};
+boot();
+</script>
+</body>
+</html>
