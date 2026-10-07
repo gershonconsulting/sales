@@ -1,0 +1,28 @@
+name = "sales-gershon"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+routes = [{ pattern = "sales.gershon.ai", custom_domain = true }]
+
+[assets]
+directory = "./public"
+not_found_handling = "none"
+
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sales-db"
+database_id = "__D1_ID__"
+
+[vars]
+# Streak GC Pipeline (encoded key from the pipeline URL)
+PIPELINE_KEY = "agxzfm1haWxmb29nYWVyNwsSDE9yZ2FuaXphdGlvbiIQb2F0dGlhQGdtYWlsLmNvbQwLEghXb3JrZmxvdxiAgICAwLWbCgw"
+DIGEST_TO = "report@gershonconsulting.com"
+DIGEST_FROM = "GC Sales <sales@gershon.ai>"
+APP_URL = "https://sales.gershon.ai"
+
+[triggers]
+# 06:00 UTC daily Streak sync; Monday 10:00 UTC sync + drafts + digest
+crons = ["0 6 * * *", "0 10 * * 1"]
