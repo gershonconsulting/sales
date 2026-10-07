@@ -1,0 +1,26 @@
+sales.gershon.ai — HANDOFF (updated 2026-10-07)
+================================================
+
+WHAT IT IS
+Cloudflare Worker + D1 + Workers AI + static UI (public/index.html). Push to main = deploy, once .github/workflows/deploy.yml is installed (source in deploy/deploy.yml).
+Data: Streak "GC Pipeline" (key in wrangler.toml). Email: Gmail OAuth, sends only after approval. Digest: Resend from "GC Sales <sales@gershon.ai>" to report@gershonconsulting.com.
+AI: Cloudflare Workers AI @cf/meta/llama-3.3-70b-instruct-fp8-fast. Olivier's rule: never use the Fable model.
+Login: Olivier picks his own password on first visit (/api/setup), client.gershoncrm.com pattern.
+Note: the Claude GitHub integration can write files via the contents API but NOT .github/workflows (no workflow scope) and NOT multi-file trees (push_files → 403). Commit one file at a time.
+
+DONE ✅ (v1 code committed — not yet deployed)
+✅ Streak sync: daily 06:00 UTC + "Sync Streak" button
+✅ Follow-up rhythm: 7d Scheduled/Negotiating/Closing; 14d Lead/Contacted/Pitched/Proposal Sent; 30d Nurturing; Recycled skipped
+✅ Chat over the pipeline; "DRAFT: <deal> | email|linkedin" lines become buttons
+✅ Per-deal drafts (email or LinkedIn), editable; approve → Gmail send → touch logged + Streak box comment
+✅ LinkedIn drafts → "queued for Charles" → Mark sent → logged
+✅ Monday 10:00 UTC: sync + up to 30 drafts for due deals + digest email
+
+PENDING ❌
+❌ CP-sales-001 (Charles): install workflow file, repo secrets, Google OAuth client, first deploy, Connect Gmail, first sync
+❌ Olivier: open https://sales.gershon.ai once and choose his password
+❌ Verify on first sync: Streak v1 box payload has emailAddresses (fallback reads box threads); comment endpoint (v2 POST, fallback v1 PUT) writes on the box
+❌ v2: read inbound Gmail replies, AI-summarise new facts, write back to Streak notes/stage (CRM auto-update)
+❌ v2: real next-step date per deal overriding the rhythm; clean stale summaries; assign the ~15 unowned boxes
+❌ v2: LinkedIn status sync / Crustdata news per deal
+❌ Add to gershon.ai hub page + Live Sites Inventory
