@@ -1,15 +1,21 @@
-sales.gershon.ai — HANDOFF (updated 2026-10-07)
-================================================
+sales.gershon.ai — Sales by Gershon.AI — HANDOFF (updated 2026-10-22, v1.1.0)
+==============================================================================
 
 WHAT IT IS
-Cloudflare Worker + D1 + Workers AI + static UI (public/index.html). Push to main = deploy, once .github/workflows/deploy.yml is installed (source in deploy/deploy.yml).
+App name: "Sales by Gershon.AI" (the "GC Sales" name is ONLY the digest email sender display name — Gershon-internal report rule).
+Cloudflare Worker `sales-gershon` + D1 + Workers AI + static UI (public/index.html + public/unified-theme.css).
+Deploy route (since 2026-10-07): Cloudflare Workers Builds (Git integration) builds on every push to main — BUT Cloudflare shows the project "disconnected from your Git account" (CP-sales-001 step 5), so merges do NOT reach sales.gershon.ai until Charles reconnects it. deploy/deploy.yml is only a fallback.
+No build step (plain static HTML/CSS + one Worker file); nothing to npm install.
 Data: Streak "GC Pipeline" (key in wrangler.toml). Email: Gmail OAuth, sends only after approval. Digest: Resend from "GC Sales <sales@gershon.ai>" to report@gershonconsulting.com.
 LinkedIn: drafts queued in the app, sent by Charles via Chrome. Olivier's rule: do NOT use Snov.io for this project.
 AI: Cloudflare Workers AI @cf/meta/llama-3.3-70b-instruct-fp8-fast. Olivier's rule: never use the Fable model.
 Login: Olivier picks his own password on first visit (/api/setup), client.gershoncrm.com pattern.
 Note: the Claude GitHub integration can write files via the contents API but NOT .github/workflows (no workflow scope) and NOT multi-file trees (push_files → 403). Commit one file at a time.
 
-DONE ✅ (v1 code committed — not yet deployed)
+DONE ✅
+✅ v1.1.0 (2026-10-22, PR nightly/2026-10-22-sales-unified-design): unified Gershon design — white 240px sidebar with red #CC3333 active pill, "Sales by Gershon.AI" wordmark (red mark + BY GERSHON.AI), 12px white cards on #f7f7f8, #1d1d1f text, #e5e7eb borders, red primary buttons + focus rings, light sign-in with red button, title "Sales by Gershon.AI", 📈 emoji + blue #0B5FFF removed, version pill in sidebar + sign-in, Sign out button, phone: drawer menu + deal tables stack as rows (no sideways scroll at 390px). Semantic colours kept (orange "due" days). Preview = Claude artifact (no branch previews for this app).
+✅ Worker sales-gershon + D1 sales-db live; https://sales.gershon.ai returns 200 (secrets still missing, see CP-sales-001)
+(v1 code:)
 ✅ Streak sync: daily 06:00 UTC + "Sync Streak" button
 ✅ Follow-up rhythm: 7d Scheduled/Negotiating/Closing; 14d Lead/Contacted/Pitched/Proposal Sent; 30d Nurturing; Recycled skipped
 ✅ Chat over the pipeline; "DRAFT: <deal> | email|linkedin" lines become buttons
@@ -18,10 +24,18 @@ DONE ✅ (v1 code committed — not yet deployed)
 ✅ Monday 10:00 UTC: sync + up to 30 drafts for due deals + digest email
 
 PENDING ❌
-❌ CP-sales-001 (Charles): install workflow file, repo secrets, Google OAuth client, first deploy, Connect Gmail, first sync
+❌ CP-sales-001 (Charles): Worker secrets (STREAK_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, RESEND_API_KEY optional), reconnect Git in Cloudflare (Settings → Builds), cron MON fix, Connect Gmail, first sync
+❌ Merge the unified-design PR → only goes live after the Git reconnect above
 ❌ Olivier: open https://sales.gershon.ai once and choose his password
 ❌ Verify on first sync: Streak v1 box payload has emailAddresses (fallback reads box threads); comment endpoint (v2 POST, fallback v1 PUT) writes on the box
 ❌ v2: read inbound Gmail replies, AI-summarise new facts, write back to Streak notes/stage (CRM auto-update)
 ❌ v2: real next-step date per deal overriding the rhythm; clean stale summaries; assign the ~15 unowned boxes
 ❌ v2: LinkedIn status sync / Crustdata news per deal
 ❌ Add to gershon.ai hub page + Live Sites Inventory
+
+KNOWN BUGS / NOTES
+- Cron "0 10 * * 1" shows as Sunday in Cloudflare (CP-sales-001 step 6).
+- Dark mode intentionally dropped in v1.1.0 (unified Gershon look is light, like Radar/Pulse/Task).
+
+NEXT ACTION
+1. Charles: finish CP-sales-001 (secrets + Git reconnect). 2. Olivier/Ariel: merge the v1.1.0 PR. 3. Olivier: open https://sales.gershon.ai, choose password, check the sidebar shows v1.1.0.
