@@ -1,4 +1,4 @@
-sales.gershon.ai — Sales by Gershon.AI — HANDOFF (updated 2026-10-22, v1.1.0)
+sales.gershon.ai — Sales by Gershon.AI — HANDOFF (updated 2026-10-23, v1.1.1)
 ==============================================================================
 
 WHAT IT IS
@@ -11,6 +11,11 @@ LinkedIn: drafts queued in the app, sent by Charles via Chrome. Olivier's rule: 
 AI: Cloudflare Workers AI @cf/meta/llama-3.3-70b-instruct-fp8-fast. Olivier's rule: never use the Fable model.
 Login: Olivier picks his own password on first visit (/api/setup), client.gershoncrm.com pattern.
 Note: the Claude GitHub integration can write files via the contents API but NOT .github/workflows (no workflow scope) and NOT multi-file trees (push_files → 403). Commit one file at a time.
+
+2026-10-23 nightly (v1.1.1, PR nightly/2026-10-23-sales-login-email, stacked on the v1.1.0 PR)
+✅ Sign-in email box is now EMPTY for every visitor (was pre-filled with olivier@gershonconsulting.com via a value="" attribute in public/index.html). Neutral placeholder "you@company.com"; browser autofill still works (autocomplete="username").
+✅ Version bumped to v1.1.1 (sidebar + sign-in pill, CSS cache-buster).
+❌ Not live until the v1.1.0 PR and this PR are merged AND Cloudflare Git is reconnected (CP-sales-001).
 
 DONE ✅
 ✅ v1.1.0 (2026-10-22, PR nightly/2026-10-22-sales-unified-design): unified Gershon design — white 240px sidebar with red #CC3333 active pill, "Sales by Gershon.AI" wordmark (red mark + BY GERSHON.AI), 12px white cards on #f7f7f8, #1d1d1f text, #e5e7eb borders, red primary buttons + focus rings, light sign-in with red button, title "Sales by Gershon.AI", 📈 emoji + blue #0B5FFF removed, version pill in sidebar + sign-in, Sign out button, phone: drawer menu + deal tables stack as rows (no sideways scroll at 390px). Semantic colours kept (orange "due" days). Preview = Claude artifact (no branch previews for this app).
