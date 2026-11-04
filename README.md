@@ -1,4 +1,6 @@
-# sales.gershon.ai — GC Sales Copilot
+# Sales by Gershon.AI — sales.gershon.ai
+
+Sales copilot (v1.1.0, unified Gershon design: `public/unified-theme.css`). "GC Sales" is only the digest email sender name.
 
 Chat + follow-up engine for the Streak **GC Pipeline**.
 
@@ -9,6 +11,6 @@ Chat + follow-up engine for the Streak **GC Pipeline**.
 - LinkedIn messages are drafted into a queue that Charles sends via Chrome (no LinkedIn API exists).
 - Chat with the pipeline, powered by Cloudflare Workers AI (Llama 3.3 70B). No Anthropic/OpenAI keys.
 
-Stack: Cloudflare Worker + D1 + Workers AI + static assets. Push to `main` deploys via GitHub Actions.
+Stack: Cloudflare Worker + D1 + Workers AI + static assets. Push to `main` deploys via Cloudflare Workers Builds (Git integration; see HANDOFF.txt).
 
 See `HANDOFF.txt` for status and `CHECKPOINTS/` for setup tasks.
