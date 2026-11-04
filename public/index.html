@@ -6,7 +6,7 @@
 <title>Sales by Gershon.AI</title>
 <meta name="theme-color" content="#CC3333">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23CC3333'/%3E%3Cpath d='M14 44l12-12 8 8 16-18' fill='none' stroke='%23fff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/unified-theme.css?v=1.1.0">
+<link rel="stylesheet" href="/unified-theme.css?v=1.1.1">
 </head>
 <body>
 <div class="auth-wrap" id="authWrap" style="display:none">
@@ -14,7 +14,7 @@
   <div class="wm"><svg viewBox="0 0 64 64" width="36" height="36" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#CC3333"/><path d="M14 44l12-12 8 8 16-18" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><span><span class="wm-t">Sales</span><span class="wm-s">by Gershon.AI</span></span></div>
   <h2 id="authTitle">Sign in</h2>
   <p class="muted" id="authHint"></p>
-  <label for="em">Email</label><input id="em" type="email" autocomplete="username" value="olivier@gershonconsulting.com">
+  <label for="em">Email</label><input id="em" type="email" autocomplete="username" placeholder="you@company.com">
   <label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" placeholder="Password">
   <button class="b p" id="authBtn">Continue</button><span id="authErr" class="muted"></span>
   <div class="auth-foot">Sales by Gershon.AI · <span class="appver"></span></div>
@@ -57,7 +57,7 @@
 </div>
 </div>
 <script>
-const APP_VERSION='v1.1.0';
+const APP_VERSION='v1.1.1';
 const $=s=>document.querySelector(s);
 document.querySelectorAll('.appver').forEach(e=>e.textContent=APP_VERSION);
 const TITLES={chat:'Chat',due:'Due follow-ups',drafts:'Drafts',pipe:'Pipeline'};
