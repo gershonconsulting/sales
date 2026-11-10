@@ -30,7 +30,8 @@ Note: the Claude GitHub integration can write files via the contents API but NOT
 ❌ BOTDOG LEAK (found 2026-11-10): 2,280 of the Radar leads in Botdog sit in a campaign with status CREATED (never started) → only 32 invited. Fix = start that campaign / move leads to an ACTIVE one in Botdog (app.botdog.co not signed in on Olivier's Chrome).
 ✅ PR #4 merged to main (2026-11-10). Goes live only after the Git reconnect below.
 ✅ Cloudflare Git reconnected 2026-11-10 (Cloudflare GitHub app was missing the sales repo; added). Push to main deploys again.
-❌ STREAK_API_KEY + RADAR_FUNNEL_TOKEN must be pasted by Olivier in Cloudflare → sales-gershon → Settings → Variables and secrets (Claude may not enter keys).
+✅ STREAK_API_KEY set 2026-11-10 (first sync: 150 boxes, 79 due).
+❌ RADAR_FUNNEL_TOKEN must be pasted by Olivier in Cloudflare → sales-gershon → Settings → Variables and secrets (Claude may not enter keys).
 ✅ 35 LinkedIn drafts NOT sent on purpose: Botdog already sent these contacts a 2-message sequence (signed BD26, last 2026-10-18) with no reply; a 3rd generic note would be pushy. Drafts stay in the GC Campaigns notes.
 ❌ Pulse not linked to Radar prospects (no shared key yet).
 
