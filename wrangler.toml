@@ -1,6 +1,8 @@
 name = "sales-gershon"
 main = "src/index.js"
 compatibility_date = "2026-09-01"
+# keep variables added in the Cloudflare dashboard (e.g. API keys) when deploying from Git
+keep_vars = true
 
 routes = [{ pattern = "sales.gershon.ai", custom_domain = true }]
 
