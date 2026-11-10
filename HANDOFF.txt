@@ -26,7 +26,11 @@ Note: the Claude GitHub integration can write files via the contents API but NOT
 ✅ 2026-11-10: 35 A/B contacts who accepted on LinkedIn added to Streak GC Campaigns (1. Contacted, Origin Botdog, LinkedIn 3. Connected) with a DRAFT LinkedIn message in each box's notes — NOT sent. Funnel shows them as 'In GC Campaigns (Botdog)'.
 ✅ Streak Origin set: DOWSERS = Habib Hassim (new option), Pro2 Automotive = Charles Ohana. 12 open GC Pipeline deals still have no provable source.
 ❌ Still blocked by CP-sales-001: STREAK_API_KEY secret + Cloudflare Git reconnect — nothing on main reaches sales.gershon.ai until then.
-❌ Botdog copy in Radar (audit_botdog_leads) last refreshed 2026-10-19 — invitations/acceptances since then are missing.
+❌ Botdog copy in Radar (audit_botdog_leads) last refreshed ~2026-10-20 (one full run, cursor done) — the 2,090 pushed since then are not in it.
+❌ BOTDOG LEAK (found 2026-11-10): 2,280 of the Radar leads in Botdog sit in a campaign with status CREATED (never started) → only 32 invited. Fix = start that campaign / move leads to an ACTIVE one in Botdog (app.botdog.co not signed in on Olivier's Chrome).
+✅ PR #4 merged to main (2026-11-10). Goes live only after the Git reconnect below.
+❌ Cloudflare Git reconnect stops at GitHub 'Confirm access' (password) — Olivier must type it; then STREAK_API_KEY + RADAR_FUNNEL_TOKEN must be pasted by Olivier (Claude may not enter keys/passwords).
+✅ 35 LinkedIn drafts NOT sent on purpose: Botdog already sent these contacts a 2-message sequence (signed BD26, last 2026-10-18) with no reply; a 3rd generic note would be pushy. Drafts stay in the GC Campaigns notes.
 ❌ Pulse not linked to Radar prospects (no shared key yet).
 
 DONE ✅
