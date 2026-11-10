@@ -1,4 +1,4 @@
-// Funnel: Radar -> Sales Navigator -> Botdog -> (Pulse) -> Streak GC Pipeline -> signed project (GC Projects Current)
+// Funnel: Radar -> Sales Navigator -> Botdog -> (Pulse) -> Streak GC Campaigns / GC Pipeline -> signed client (GC Clients)
 // Matching key between Radar and Streak = normalised company name (Streak boxes carry no LinkedIn URL).
 // A Streak deal or client counts as Radar-sourced only if Radar pushed it to Botdog BEFORE the Streak box was created
 // (otherwise Radar simply picked up someone we already knew).
@@ -21,7 +21,10 @@ function radarSourced(match, createdAt) {
   return !createdAt || Date.parse(match.first_pushed) < createdAt;
 }
 
-export function buildFunnel({ radar, pipelineDef, gcBoxes, projectBoxes, campaignDef, campaignBoxes, now = Date.now() }) {
+export const CLIENT_STAGES = { '5009': 'Started', '5004': 'On Going', '5002': 'Success', '5001': 'Failed', '5003': 'Abandoned' };
+const ACTIVE_CLIENT = new Set(['5009', '5004']);
+
+export function buildFunnel({ radar, pipelineDef, gcBoxes, clientDef, clientBoxes, campaignDef, campaignBoxes, now = Date.now() }) {
   const om = originMap(pipelineDef || {});
   const matches = (radar && radar.matches) || {};
   const deals = (gcBoxes || []).map((b) => {
@@ -34,18 +37,17 @@ export function buildFunnel({ radar, pipelineDef, gcBoxes, projectBoxes, campaig
   const open = deals.filter((d) => d.stage !== '5012');
   const radarDeals = open.filter((d) => d.viaRadar);
 
-  // signed clients = distinct companies in GC Projects Current
-  const firstSeen = {};
-  for (const b of projectBoxes || []) {
-    const n = clientName(b.name);
-    if (!n) continue;
-    const c = b.creationTimestamp || now;
-    if (!firstSeen[n] || c < firstSeen[n]) firstSeen[n] = c;
-  }
-  const clients = Object.entries(firstSeen).map(([name, since]) => {
-    const m = matches[name] || null;
-    return { name, since, onRadar: !!m, viaRadar: radarSourced(m, since), radar: m };
-  }).sort((a, b) => a.name.localeCompare(b.name));
+  // signed clients = every box in the Streak GC Clients pipeline (one box per client, with its own Origin field)
+  const cl = originMap(clientDef || {});
+  const clients = (clientBoxes || []).map((b) => {
+    const origin = (cl.key && cl.names[String((b.fields || {})[cl.key] || '')]) || '';
+    const m = matches[b.name] || null;
+    return {
+      name: b.name, status: CLIENT_STAGES[b.stageKey] || b.stageKey, active: ACTIVE_CLIENT.has(b.stageKey),
+      origin: origin || 'No source set', onRadar: !!m,
+      viaRadar: origin === 'Botdog' || ((!origin || origin === 'LinkedIn') && radarSourced(m, b.creationTimestamp)),
+    };
+  }).sort((a, b) => (b.active - a.active) || a.name.localeCompare(b.name));
   const radarClients = clients.filter((c) => c.viaRadar);
 
   // GC Campaigns: accepted LinkedIn contacts turned into campaign boxes (Origin = Botdog)
@@ -64,7 +66,7 @@ export function buildFunnel({ radar, pipelineDef, gcBoxes, projectBoxes, campaig
     { id: 'pulse', label: 'Engaged on LinkedIn (Pulse)', n: null, src: 'Pulse', note: 'Pulse is not linked to Radar prospects yet' },
     { id: 'streak', label: 'Open deal in Streak', n: radarDeals.length, src: 'Streak' },
     { id: 'proposal', label: 'Proposal sent or later', n: radarDeals.filter((d) => PROPOSAL_PLUS.has(d.stage)).length, src: 'Streak', of: 'streak' },
-    { id: 'signed', label: 'Signed (full cycle)', n: radarClients.length, src: 'Streak' },
+    { id: 'signed', label: 'Signed client (full cycle)', n: radarClients.length, src: 'Streak GC Clients' },
   ];
 
   // open deals by source x stage
@@ -87,7 +89,10 @@ export function buildFunnel({ radar, pipelineDef, gcBoxes, projectBoxes, campaig
     steps,
     full_cycle: radarClients.length,
     radar_deals: radarDeals.map(({ key, name, stage, stage_name, origin }) => ({ key, name, stage, stage_name, origin })),
-    clients: clients.map(({ name, onRadar, viaRadar }) => ({ name, onRadar, viaRadar })),
+    clients,
+    clients_total: clients.length,
+    clients_active: clients.filter((c) => c.active).length,
+    clients_by_source: Object.entries(clients.reduce((o, c) => ((o[c.origin] = (o[c.origin] || 0) + 1), o), {})).map(([origin, n]) => ({ origin, n })).sort((a, b) => b.n - a.n),
     by_source: Object.values(bySource).sort((a, b) => b.total - a.total),
     accepted_no_deal: acceptedNoDeal,
     stage_order: STAGE_ORDER,

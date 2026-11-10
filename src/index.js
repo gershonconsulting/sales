@@ -1,5 +1,5 @@
 // sales.gershon.ai — GC Sales Copilot (Cloudflare Worker)
-import { buildFunnel, clientName } from './funnel.js';
+import { buildFunnel } from './funnel.js';
 const MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 const STAGES = { '5001': '1. Lead', '5002': '2. Contacted', '5010': '3. Scheduled', '5003': '4. Pitched', '5011': '5. Proposal Sent', '5013': '6. Nurturing', '5005': '7. Negotiating', '5015': '8. Closing', '5012': '9. Recycled' };
 // follow-up rhythm in days per stage
@@ -170,17 +170,18 @@ async function funnel(env, refresh) {
     if (c) { const j = JSON.parse(c); if (Date.now() - j.generated_at < 30 * 60000) return j; }
   }
   if (!env.STREAK_API_KEY) throw new Error('STREAK_API_KEY secret is not set');
-  const [pipelineDef, gcBoxes, projectBoxes, campaignDef, campaignBoxes] = await Promise.all([
+  const [pipelineDef, gcBoxes, clientDef, clientBoxes, campaignDef, campaignBoxes] = await Promise.all([
     streak(env, `v1/pipelines/${env.PIPELINE_KEY}`),
     streak(env, `v1/pipelines/${env.PIPELINE_KEY}/boxes`),
-    env.PROJECTS_PIPELINE_KEY ? streak(env, `v1/pipelines/${env.PROJECTS_PIPELINE_KEY}/boxes`) : [],
+    env.CLIENTS_PIPELINE_KEY ? streak(env, `v1/pipelines/${env.CLIENTS_PIPELINE_KEY}`).catch(() => ({})) : {},
+    env.CLIENTS_PIPELINE_KEY ? streak(env, `v1/pipelines/${env.CLIENTS_PIPELINE_KEY}/boxes`) : [],
     env.CAMPAIGNS_PIPELINE_KEY ? streak(env, `v1/pipelines/${env.CAMPAIGNS_PIPELINE_KEY}`).catch(() => ({})) : {},
     env.CAMPAIGNS_PIPELINE_KEY ? streak(env, `v1/pipelines/${env.CAMPAIGNS_PIPELINE_KEY}/boxes`).catch(() => []) : [],
   ]);
-  const companies = [...new Set([...gcBoxes.map((b) => b.name), ...projectBoxes.map((b) => clientName(b.name))].filter(Boolean))];
+  const companies = [...new Set([...gcBoxes.map((b) => b.name), ...clientBoxes.map((b) => b.name)].filter(Boolean))];
   let radar = null, radarError = null;
   try { radar = await radarFunnel(env, companies); } catch (e) { radarError = String(e.message || e); }
-  const out = buildFunnel({ radar, pipelineDef, gcBoxes, projectBoxes, campaignDef, campaignBoxes });
+  const out = buildFunnel({ radar, pipelineDef, gcBoxes, clientDef, clientBoxes, campaignDef, campaignBoxes });
   out.radar_error = radarError;
   await setSetting(env, 'funnel_cache', JSON.stringify(out));
   return out;

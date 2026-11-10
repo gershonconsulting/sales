@@ -21,15 +21,16 @@ const gcBoxes = [
   { boxKey: 'b5', name: 'Intro', stageKey: '5003', creationTimestamp: D('2026-10-28'), fields: { 1003: '9231' } },
   { boxKey: 'b4', name: 'Old', stageKey: '5012', creationTimestamp: D('2026-01-01'), fields: { 1003: '9224' } },
 ];
-const projectBoxes = [
-  { name: 'Client1 (TP)', creationTimestamp: D('2026-09-15') },
-  { name: 'Client1 (LF)', creationTimestamp: D('2026-09-20') },
-  { name: 'Client2 - Anne (TP)', creationTimestamp: D('2026-06-01') },
+const clientDef = { fields: [{ key: 1002, name: 'Origin', dropdownSettings: { items: [{ key: '9021', name: 'LinkedIn' }, { key: '9024', name: 'SOSA' }] } }] };
+const clientBoxes = [
+  { name: 'Client1', stageKey: '5004', creationTimestamp: D('2026-09-15'), fields: { 1002: '9021' } },
+  { name: 'Client2', stageKey: '5009', creationTimestamp: D('2026-06-01'), fields: {} },
+  { name: 'Old', stageKey: '5001', creationTimestamp: D('2025-01-01'), fields: { 1002: '9024' } },
 ];
 
 const campaignDef = { fields: [{ key: 1002, name: 'Origin', dropdownSettings: { items: [{ key: '9207', name: 'Botdog' }] } }] };
 const campaignBoxes = [{ name: 'Kleos', fields: { 1002: '9207' } }, { name: 'Other', fields: {} }];
-const f = buildFunnel({ radar, pipelineDef, gcBoxes, projectBoxes, campaignDef, campaignBoxes, now: D('2026-11-10') });
+const f = buildFunnel({ radar, pipelineDef, gcBoxes, clientDef, clientBoxes, campaignDef, campaignBoxes, now: D('2026-11-10') });
 const step = (id) => f.steps.find((s) => s.id === id).n;
 
 assert.equal(clientName('Altavia - Anne (LF)'), 'Altavia');
@@ -38,13 +39,15 @@ assert.equal(step('collected'), 100);
 assert.equal(step('pulse'), null);
 assert.deepEqual(f.radar_deals.map((d) => d.name).sort(), ['Acme', 'DLOC']); // recycled + late excluded
 assert.equal(step('proposal'), 2); // Acme (5011) + DLOC (5015)
-assert.equal(f.clients.length, 2); // Client1 deduped
+assert.equal(f.clients_total, 3);
+assert.equal(f.clients_active, 2);
+assert.equal(f.clients_by_source.find((x) => x.origin === 'SOSA').n, 1);
 assert.equal(f.full_cycle, 1);
 assert.equal(f.clients.find((c) => c.name === 'Client2').onRadar, true);
 assert.equal(f.clients.find((c) => c.name === 'Client2').viaRadar, false);
 assert.equal(f.by_source.find((s) => s.origin === 'No source set').total, 1);
 assert.deepEqual(f.accepted_no_deal.map((p) => p.company), ['Kleos']);
-const empty = buildFunnel({ radar: null, pipelineDef: {}, gcBoxes: [], projectBoxes: [] });
+const empty = buildFunnel({ radar: null, pipelineDef: {}, gcBoxes: [], clientBoxes: [] });
 assert.equal(empty.radar_ok, false);
 assert.equal(f.steps.find((x) => x.id === 'invited').of, 'pushed');
 assert.equal(step('campaign'), 1);

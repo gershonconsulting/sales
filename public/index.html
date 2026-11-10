@@ -58,7 +58,7 @@
     <div class="card"><div id="fcSteps"></div></div>
     <div class="card wrap"><b>Open deals by source</b><table id="fcSrc"></table></div>
     <div class="card wrap"><b>Radar / Botdog deals in Streak</b><table id="fcDeals"></table></div>
-    <div class="card wrap"><b>Signed clients</b><table id="fcClients"></table></div>
+    <div class="card wrap"><b>Signed clients (GC Clients)</b><table id="fcClients"></table></div>
     <div class="card wrap"><b>Accepted on LinkedIn, no Streak deal yet</b><table id="fcAcc"></table></div>
   </section>
   <section id="t-pipe" style="display:none"><div class="card wrap"><table id="pipeT"></table></div></section>
@@ -132,7 +132,7 @@ async function loadFunnel(refresh){
   const so=f.stage_order;
   $('#fcSrc').innerHTML='<tr><th>Source</th>'+so.map(k=>`<th class="hide-sm">${esc(f.stage_names[k].replace(/^\d+\.\s*/,''))}</th>`).join('')+'<th>Total</th></tr>'+f.by_source.map(r=>`<tr><td>${esc(r.origin)}</td>`+so.map(k=>`<td class="hide-sm">${r.stages[k]||''}</td>`).join('')+`<td><b>${r.total}</b></td></tr>`).join('');
   $('#fcDeals').innerHTML=f.radar_deals.length?'<tr><th>Deal</th><th>Stage</th><th>Source field</th></tr>'+f.radar_deals.map(d=>`<tr><td><b>${esc(d.name)}</b></td><td><span class="tag">${esc(d.stage_name)}</span></td><td>${esc(d.origin)}</td></tr>`).join(''):'<tr><td class="muted">None yet.</td></tr>';
-  $('#fcClients').innerHTML='<tr><th>Client</th><th>On Radar</th><th>Came from Radar</th></tr>'+f.clients.map(c=>`<tr><td>${esc(c.name)}</td><td>${c.onRadar?'yes':'—'}</td><td>${c.viaRadar?'<b>yes</b>':'no'}</td></tr>`).join('');
+  $('#fcClients').innerHTML=`<tr><td colspan="4" class="muted">${f.clients_total} clients in GC Clients · ${f.clients_active} active (Started / On Going) · by source: ${f.clients_by_source.map(x=>esc(x.origin)+' '+x.n).join(', ')}</td></tr><tr><th>Client</th><th>Status</th><th class="hide-sm">Source</th><th>Came from Radar</th></tr>`+f.clients.map(c=>`<tr><td>${c.active?'<b>'+esc(c.name)+'</b>':esc(c.name)}</td><td><span class="tag">${esc(c.status)}</span></td><td class="hide-sm">${esc(c.origin)}</td><td>${c.viaRadar?'<b>yes</b>':(c.onRadar?'on Radar later':'no')}</td></tr>`).join('');
   $('#fcAcc').innerHTML=f.accepted_no_deal.length?'<tr><th>Person</th><th>Company</th><th class="hide-sm">Grade</th><th>Accepted</th></tr>'+f.accepted_no_deal.map(p=>`<tr><td>${p.linkedin?`<a href="${esc(p.linkedin)}" target="_blank" rel="noopener">${esc(p.name)}</a>`:esc(p.name)}</td><td>${esc(p.company||'—')}</td><td class="hide-sm">${esc(p.grade||'')}</td><td>${day(p.connected_at)}</td></tr>`).join(''):'<tr><td class="muted">None.</td></tr>';
 }
 $('#fcRefresh').onclick=()=>loadFunnel(true);

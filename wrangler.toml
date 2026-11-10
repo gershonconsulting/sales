@@ -19,8 +19,8 @@ database_id = "33344da0-ae0b-4eae-8d65-7555a3b3612a"
 [vars]
 # Streak GC Pipeline (encoded key from the pipeline URL)
 PIPELINE_KEY = "agxzfm1haWxmb29nYWVyNwsSDE9yZ2FuaXphdGlvbiIQb2F0dGlhQGdtYWlsLmNvbQwLEghXb3JrZmxvdxiAgICAwLWbCgw"
-# GC Projects Current (signed clients) — used by the Funnel page
-PROJECTS_PIPELINE_KEY = "agxzfm1haWxmb29nYWVyNwsSDE9yZ2FuaXphdGlvbiIQb2F0dGlhQGdtYWlsLmNvbQwLEghXb3JrZmxvdxiAgICA0JCRCgw"
+# GC Clients (every signed client, with Origin) — used by the Funnel page
+CLIENTS_PIPELINE_KEY = "agxzfm1haWxmb29nYWVyNwsSDE9yZ2FuaXphdGlvbiIQb2F0dGlhQGdtYWlsLmNvbQwLEghXb3JrZmxvdxiAgICAiJuLCgw"
 # GC Campaigns (accepted LinkedIn contacts) — Funnel page
 CAMPAIGNS_PIPELINE_KEY = "agxzfm1haWxmb29nYWVyPAsSDE9yZ2FuaXphdGlvbiIVZ2Vyc2hvbmNvbnN1bHRpbmcuY29tDAsSCFdvcmtmbG93GICAlZSi8K8JDA"
 # Radar Supabase (public URL + publishable anon key; data access is gated by the RADAR_FUNNEL_TOKEN secret)
