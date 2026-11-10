@@ -1,4 +1,5 @@
 // sales.gershon.ai — GC Sales Copilot (Cloudflare Worker)
+import { buildFunnel, clientName } from './funnel.js';
 const MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 const STAGES = { '5001': '1. Lead', '5002': '2. Contacted', '5010': '3. Scheduled', '5003': '4. Pitched', '5011': '5. Proposal Sent', '5013': '6. Nurturing', '5005': '7. Negotiating', '5015': '8. Closing', '5012': '9. Recycled' };
 // follow-up rhythm in days per stage
@@ -32,6 +33,7 @@ export default {
       }
       if (p === '/api/pipeline') return json(await pipeline(env));
       if (p === '/api/sync' && post) return json(await syncStreak(env));
+      if (p === '/api/funnel') return json(await funnel(env, url.searchParams.has('refresh')));
       if (p === '/api/chat' && post) {
         const b = await req.json();
         return json({ reply: await chat(env, b.message || '', b.history || []) });
@@ -53,7 +55,7 @@ export default {
     }
   },
   async scheduled(event, env, ctx) {
-    if (event.cron === '0 6 * * *') ctx.waitUntil(syncStreak(env));
+    if (event.cron === '0 6 * * *') ctx.waitUntil(syncStreak(env).then(() => funnel(env, true)));
     if (event.cron === '0 10 * * 1') ctx.waitUntil(syncStreak(env).then(() => weekly(env)));
   },
 };
@@ -149,6 +151,39 @@ async function streakComment(env, key, message) {
       await streak(env, `v1/boxes/${key}/comments`, { method: 'PUT', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ message }) });
     } catch (e2) { /* non-fatal */ }
   }
+}
+
+/* ---------------- funnel: Radar -> Sales Nav -> Botdog -> Streak -> signed ---------------- */
+async function radarFunnel(env, companies) {
+  if (!env.RADAR_URL || !env.RADAR_ANON || !env.RADAR_FUNNEL_TOKEN) throw new Error('Radar link not configured (RADAR_FUNNEL_TOKEN secret missing)');
+  const r = await fetch(env.RADAR_URL + '/rest/v1/rpc/sales_funnel', {
+    method: 'POST',
+    headers: { apikey: env.RADAR_ANON, Authorization: 'Bearer ' + env.RADAR_ANON, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_token: env.RADAR_FUNNEL_TOKEN, p_companies: companies }),
+  });
+  if (!r.ok) throw new Error('Radar ' + r.status + ': ' + (await r.text()).slice(0, 200));
+  return r.json();
+}
+async function funnel(env, refresh) {
+  if (!refresh) {
+    const c = await getSetting(env, 'funnel_cache');
+    if (c) { const j = JSON.parse(c); if (Date.now() - j.generated_at < 30 * 60000) return j; }
+  }
+  if (!env.STREAK_API_KEY) throw new Error('STREAK_API_KEY secret is not set');
+  const [pipelineDef, gcBoxes, projectBoxes, campaignDef, campaignBoxes] = await Promise.all([
+    streak(env, `v1/pipelines/${env.PIPELINE_KEY}`),
+    streak(env, `v1/pipelines/${env.PIPELINE_KEY}/boxes`),
+    env.PROJECTS_PIPELINE_KEY ? streak(env, `v1/pipelines/${env.PROJECTS_PIPELINE_KEY}/boxes`) : [],
+    env.CAMPAIGNS_PIPELINE_KEY ? streak(env, `v1/pipelines/${env.CAMPAIGNS_PIPELINE_KEY}`).catch(() => ({})) : {},
+    env.CAMPAIGNS_PIPELINE_KEY ? streak(env, `v1/pipelines/${env.CAMPAIGNS_PIPELINE_KEY}/boxes`).catch(() => []) : [],
+  ]);
+  const companies = [...new Set([...gcBoxes.map((b) => b.name), ...projectBoxes.map((b) => clientName(b.name))].filter(Boolean))];
+  let radar = null, radarError = null;
+  try { radar = await radarFunnel(env, companies); } catch (e) { radarError = String(e.message || e); }
+  const out = buildFunnel({ radar, pipelineDef, gcBoxes, projectBoxes, campaignDef, campaignBoxes });
+  out.radar_error = radarError;
+  await setSetting(env, 'funnel_cache', JSON.stringify(out));
+  return out;
 }
 
 /* ---------------- pipeline view ---------------- */
