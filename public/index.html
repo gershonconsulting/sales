@@ -6,7 +6,7 @@
 <title>Sales by Gershon.AI</title>
 <meta name="theme-color" content="#CC3333">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23CC3333'/%3E%3Cpath d='M14 44l12-12 8 8 16-18' fill='none' stroke='%23fff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/unified-theme.css?v=1.1.1">
+<link rel="stylesheet" href="/unified-theme.css?v=1.2.0">
 </head>
 <body>
 <div class="auth-wrap" id="authWrap" style="display:none">
@@ -28,6 +28,7 @@
     <button data-t="chat" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat</button>
     <button data-t="due"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Due<span class="cnt" id="dueBadge" hidden></span></button>
     <button data-t="drafts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Drafts</button>
+    <button data-t="funnel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M7 10h10M10 15h4M11 20h2"/></svg>Funnel</button>
     <button data-t="pipe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg>Pipeline</button>
   </nav>
   <div class="side-f">
@@ -52,15 +53,23 @@
   </section>
   <section id="t-due" style="display:none"><div class="card"><div class="row"><b id="dueCount"></b><span class="sp"></span><button class="b p" id="weeklyBtn">Draft all due</button></div></div><div class="card wrap"><table id="dueT"></table></div></section>
   <section id="t-drafts" style="display:none"><div id="draftList"></div></section>
+  <section id="t-funnel" style="display:none">
+    <div class="card"><div class="row"><b id="fcHead">Full cycle</b><span class="sp"></span><span class="muted" id="fcAt"></span><button class="b" id="fcRefresh">Refresh</button></div><div class="muted" id="fcWarn"></div></div>
+    <div class="card"><div id="fcSteps"></div></div>
+    <div class="card wrap"><b>Open deals by source</b><table id="fcSrc"></table></div>
+    <div class="card wrap"><b>Radar / Botdog deals in Streak</b><table id="fcDeals"></table></div>
+    <div class="card wrap"><b>Signed clients</b><table id="fcClients"></table></div>
+    <div class="card wrap"><b>Accepted on LinkedIn, no Streak deal yet</b><table id="fcAcc"></table></div>
+  </section>
   <section id="t-pipe" style="display:none"><div class="card wrap"><table id="pipeT"></table></div></section>
 </main>
 </div>
 </div>
 <script>
-const APP_VERSION='v1.1.1';
+const APP_VERSION='v1.2.0';
 const $=s=>document.querySelector(s);
 document.querySelectorAll('.appver').forEach(e=>e.textContent=APP_VERSION);
-const TITLES={chat:'Chat',due:'Due follow-ups',drafts:'Drafts',pipe:'Pipeline'};
+const TITLES={chat:'Chat',due:'Due follow-ups',drafts:'Drafts',funnel:'Funnel',pipe:'Pipeline'};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function api(p,b){const r=await fetch(p,b===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||r.status);return j}
 let deals=[],hist=[];
@@ -97,7 +106,7 @@ async function loadDrafts(){
   <div class="row">${d.status==='linkedin_queue'?`<button class="b p" onclick="act(${d.id},'done')">Mark sent</button>`:`<button class="b p" onclick="act(${d.id},'approve')">${d.channel==='email'?'Approve &amp; send':'Approve → LinkedIn queue'}</button>`}<button class="b" onclick="act(${d.id},'reject')">Discard</button></div></div>`).join(''):'<div class="card muted">No drafts waiting.</div>';
 }
 async function act(id,a){const c=$('#d'+id),data={};c.querySelectorAll('[data-f]').forEach(e=>data[e.dataset.f]=e.value);try{await api(`/api/drafts/${id}/${a}`,data);loadDrafts();loadPipe()}catch(e){alert(e.message)}}
-function show(t){$('#pageTitle').textContent=TITLES[t];$('#app').classList.remove('open');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['chat','due','drafts','pipe'].forEach(x=>$('#t-'+x).style.display=x===t?'block':'none');if(t==='drafts')loadDrafts()}
+function show(t){$('#pageTitle').textContent=TITLES[t];$('#app').classList.remove('open');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['chat','due','drafts','funnel','pipe'].forEach(x=>$('#t-'+x).style.display=x===t?'block':'none');if(t==='drafts')loadDrafts();if(t==='funnel')loadFunnel()}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.t));
 $('#syncBtn').onclick=async()=>{$('#syncBtn').textContent='Syncing…';try{const r=await api('/api/sync',{});$('#status').textContent=r.synced+' deals synced';await loadPipe()}catch(e){alert(e.message)}$('#syncBtn').textContent='Sync Streak'};
 $('#weeklyBtn').onclick=async()=>{$('#weeklyBtn').textContent='Drafting…';try{const r=await api('/api/weekly',{});alert(r.drafts+' drafts created');show('drafts')}catch(e){alert(e.message)}$('#weeklyBtn').textContent='Draft all due'};
@@ -107,6 +116,26 @@ $('#q').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#se
 $('#menuBtn').onclick=()=>$('#app').classList.add('open');
 $('#scrim').onclick=()=>$('#app').classList.remove('open');
 $('#outBtn').onclick=async()=>{try{await api('/api/logout',{})}catch(e){}location.href='/'};
+
+const fmt=n=>n==null?'—':Number(n).toLocaleString();
+const day=t=>t?new Date(t).toLocaleDateString():'—';
+async function loadFunnel(refresh){
+  $('#fcAt').textContent='Loading…';
+  let f;try{f=await api('/api/funnel'+(refresh?'?refresh=1':''))}catch(e){$('#fcAt').textContent='';$('#fcWarn').textContent=e.message;return}
+  $('#fcHead').textContent=f.full_cycle+' did the full cycle (Radar → signed)';
+  $('#fcAt').textContent='Updated '+new Date(f.generated_at).toLocaleString();
+  const w=[];if(f.radar_error)w.push('Radar: '+f.radar_error);if(f.botdog_synced_at&&Date.now()-Date.parse(f.botdog_synced_at)>3*864e5)w.push('Botdog data last copied '+day(f.botdog_synced_at)+' — invitations/acceptances after that date are missing.');
+  $('#fcWarn').textContent=w.join(' · ');
+  const top=Math.max(1,...f.steps.map(s=>s.n||0));let prev=null;
+  $('#fcSteps').innerHTML=f.steps.map(s=>{const pct=s.n==null?0:Math.max(.6,100*s.n/top);const conv=(prev&&s.n!=null)?Math.round(1000*s.n/prev)/10+'%':'';if(s.n!=null)prev=s.n||prev;
+    return `<div style="display:grid;grid-template-columns:minmax(150px,230px) 1fr 70px 60px;gap:10px;align-items:center;margin:6px 0"><span>${esc(s.label)} <span class="muted">· ${esc(s.src)}</span></span><div style="background:#f1f1f3;border-radius:6px;height:18px"><div style="width:${pct}%;height:18px;border-radius:6px;background:${s.n==null?'#e5e7eb':'#CC3333'}"></div></div><b style="text-align:right">${fmt(s.n)}</b><span class="muted" style="text-align:right">${s.note?'':conv}</span></div>${s.note?`<div class="muted" style="margin:-4px 0 6px">${esc(s.note)}</div>`:''}`}).join('');
+  const so=f.stage_order;
+  $('#fcSrc').innerHTML='<tr><th>Source</th>'+so.map(k=>`<th class="hide-sm">${esc(f.stage_names[k].replace(/^\d+\.\s*/,''))}</th>`).join('')+'<th>Total</th></tr>'+f.by_source.map(r=>`<tr><td>${esc(r.origin)}</td>`+so.map(k=>`<td class="hide-sm">${r.stages[k]||''}</td>`).join('')+`<td><b>${r.total}</b></td></tr>`).join('');
+  $('#fcDeals').innerHTML=f.radar_deals.length?'<tr><th>Deal</th><th>Stage</th><th>Source field</th></tr>'+f.radar_deals.map(d=>`<tr><td><b>${esc(d.name)}</b></td><td><span class="tag">${esc(d.stage_name)}</span></td><td>${esc(d.origin)}</td></tr>`).join(''):'<tr><td class="muted">None yet.</td></tr>';
+  $('#fcClients').innerHTML='<tr><th>Client</th><th>On Radar</th><th>Came from Radar</th></tr>'+f.clients.map(c=>`<tr><td>${esc(c.name)}</td><td>${c.onRadar?'yes':'—'}</td><td>${c.viaRadar?'<b>yes</b>':'no'}</td></tr>`).join('');
+  $('#fcAcc').innerHTML=f.accepted_no_deal.length?'<tr><th>Person</th><th>Company</th><th class="hide-sm">Grade</th><th>Accepted</th></tr>'+f.accepted_no_deal.map(p=>`<tr><td>${p.linkedin?`<a href="${esc(p.linkedin)}" target="_blank" rel="noopener">${esc(p.name)}</a>`:esc(p.name)}</td><td>${esc(p.company||'—')}</td><td class="hide-sm">${esc(p.grade||'')}</td><td>${day(p.connected_at)}</td></tr>`).join(''):'<tr><td class="muted">None.</td></tr>';
+}
+$('#fcRefresh').onclick=()=>loadFunnel(true);
 boot();
 </script>
 </body>

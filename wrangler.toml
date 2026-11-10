@@ -19,6 +19,11 @@ database_id = "33344da0-ae0b-4eae-8d65-7555a3b3612a"
 [vars]
 # Streak GC Pipeline (encoded key from the pipeline URL)
 PIPELINE_KEY = "agxzfm1haWxmb29nYWVyNwsSDE9yZ2FuaXphdGlvbiIQb2F0dGlhQGdtYWlsLmNvbQwLEghXb3JrZmxvdxiAgICAwLWbCgw"
+# GC Projects Current (signed clients) — used by the Funnel page
+PROJECTS_PIPELINE_KEY = "agxzfm1haWxmb29nYWVyNwsSDE9yZ2FuaXphdGlvbiIQb2F0dGlhQGdtYWlsLmNvbQwLEghXb3JrZmxvdxiAgICA0JCRCgw"
+# Radar Supabase (public URL + publishable anon key; data access is gated by the RADAR_FUNNEL_TOKEN secret)
+RADAR_URL = "https://pkzeeqehwmtnqxdpdesl.supabase.co"
+RADAR_ANON = "sb_publishable_LHzg2llBWS7FOhd7jInUiw_9Rf4fNrI"
 DIGEST_TO = "report@gershonconsulting.com"
 DIGEST_FROM = "GC Sales <sales@gershon.ai>"
 APP_URL = "https://sales.gershon.ai"
