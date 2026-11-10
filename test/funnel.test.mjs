@@ -40,8 +40,9 @@ assert.equal(f.clients.length, 2); // Client1 deduped
 assert.equal(f.full_cycle, 1);
 assert.equal(f.clients.find((c) => c.name === 'Client2').onRadar, true);
 assert.equal(f.clients.find((c) => c.name === 'Client2').viaRadar, false);
-assert.equal(f.by_source.find((s) => s.origin === 'Unknown').total, 1);
+assert.equal(f.by_source.find((s) => s.origin === 'No source set').total, 1);
 assert.deepEqual(f.accepted_no_deal.map((p) => p.company), ['Kleos']);
 const empty = buildFunnel({ radar: null, pipelineDef: {}, gcBoxes: [], projectBoxes: [] });
 assert.equal(empty.radar_ok, false);
+assert.equal(f.steps.find((x) => x.id === 'invited').of, 'pushed');
 console.log('funnel tests passed');

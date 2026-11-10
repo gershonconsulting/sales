@@ -17,6 +17,15 @@ Note: the Claude GitHub integration can write files via the contents API but NOT
 ✅ Version bumped to v1.1.1 (sidebar + sign-in pill, CSS cache-buster).
 ❌ Not live until this PR is merged AND Cloudflare Git is reconnected (CP-sales-001).
 
+2026-11-09 (v1.2.0, branch feature/funnel, PR open)
+✅ Funnel page (sidebar → Funnel): Radar collected → graded A/B → Sales Nav → pushed to Botdog → invited → accepted → (Pulse, not linked yet) → open Streak deal → proposal+ → signed (GC Projects Current). /api/funnel, 30-min cache, refreshed by the 06:00 UTC cron. Unit tests: npm test (pass).
+✅ Rule: a deal/client counts as Radar-sourced only if Radar pushed it to Botdog BEFORE its Streak box existed, unless a source was typed by hand in the Origin field (hand-set source wins).
+✅ Streak: DOWSERS Origin set to new option "Habib Hassim" (intro from SmartOne). 13 open GC Pipeline deals still have no Origin.
+❌ Apply sql/radar_sales_funnel.sql on Supabase "radar" (blocked: needs Olivier's OK for a live-database change). Then copy `select token from private.app_tokens where app='sales'` into Worker secret RADAR_FUNNEL_TOKEN.
+❌ Still blocked by CP-sales-001: STREAK_API_KEY secret + Cloudflare Git reconnect — nothing on main reaches sales.gershon.ai until then.
+❌ Botdog copy in Radar (audit_botdog_leads) last refreshed 2026-10-19 — invitations/acceptances since then are missing.
+❌ Pulse not linked to Radar prospects (no shared key yet).
+
 DONE ✅
 ✅ v1.1.0 (2026-10-22, PR nightly/2026-10-22-sales-unified-design): unified Gershon design — white 240px sidebar with red #CC3333 active pill, "Sales by Gershon.AI" wordmark (red mark + BY GERSHON.AI), 12px white cards on #f7f7f8, #1d1d1f text, #e5e7eb borders, red primary buttons + focus rings, light sign-in with red button, title "Sales by Gershon.AI", 📈 emoji + blue #0B5FFF removed, version pill in sidebar + sign-in, Sign out button, phone: drawer menu + deal tables stack as rows (no sideways scroll at 390px). Semantic colours kept (orange "due" days). Preview = Claude artifact (no branch previews for this app).
 ✅ Worker sales-gershon + D1 sales-db live; https://sales.gershon.ai returns 200 (secrets still missing, see CP-sales-001)

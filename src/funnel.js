@@ -29,7 +29,7 @@ export function buildFunnel({ radar, pipelineDef, gcBoxes, projectBoxes, now = D
     const m = matches[b.name] || null;
     // a source typed by hand wins; the automatic Radar match only fills in boxes with no source (or a generic 'LinkedIn')
     const viaRadar = origin === 'Botdog' || ((!origin || origin === 'LinkedIn') && radarSourced(m, b.creationTimestamp));
-    return { key: b.boxKey || b.key, name: b.name, stage: b.stageKey, stage_name: STAGE_NAMES[b.stageKey] || b.stageKey, origin: origin || 'Unknown', viaRadar, radar: m };
+    return { key: b.boxKey || b.key, name: b.name, stage: b.stageKey, stage_name: STAGE_NAMES[b.stageKey] || b.stageKey, origin: origin || 'No source set', viaRadar, radar: m };
   });
   const open = deals.filter((d) => d.stage !== '5012');
   const radarDeals = open.filter((d) => d.viaRadar);
@@ -51,14 +51,14 @@ export function buildFunnel({ radar, pipelineDef, gcBoxes, projectBoxes, now = D
   const r = radar || {};
   const steps = [
     { id: 'collected', label: 'Collected on Radar', n: r.collected ?? null, src: 'Radar' },
-    { id: 'graded', label: 'Graded A or B', n: r.graded_ab ?? null, src: 'Radar' },
-    { id: 'salesnav', label: 'Listed in Sales Navigator', n: r.salesnav ?? null, src: 'Radar' },
-    { id: 'pushed', label: 'Pushed to Botdog', n: r.pushed ?? null, src: 'Radar' },
-    { id: 'invited', label: 'Invited by Botdog', n: r.invited ?? null, src: 'Botdog' },
-    { id: 'connected', label: 'Accepted the invitation', n: r.connected ?? null, src: 'Botdog' },
+    { id: 'graded', label: 'Graded A or B', n: r.graded_ab ?? null, src: 'Radar', of: 'collected' },
+    { id: 'salesnav', label: 'Listed in Sales Navigator', n: r.salesnav ?? null, src: 'Radar', of: 'collected' },
+    { id: 'pushed', label: 'Pushed to Botdog', n: r.pushed ?? null, src: 'Radar', of: 'collected' },
+    { id: 'invited', label: 'Invited by Botdog', n: r.invited ?? null, src: 'Botdog', of: 'pushed' },
+    { id: 'connected', label: 'Accepted the invitation', n: r.connected ?? null, src: 'Botdog', of: 'invited' },
     { id: 'pulse', label: 'Engaged on LinkedIn (Pulse)', n: null, src: 'Pulse', note: 'Pulse is not linked to Radar prospects yet' },
     { id: 'streak', label: 'Open deal in Streak', n: radarDeals.length, src: 'Streak' },
-    { id: 'proposal', label: 'Proposal sent or later', n: radarDeals.filter((d) => PROPOSAL_PLUS.has(d.stage)).length, src: 'Streak' },
+    { id: 'proposal', label: 'Proposal sent or later', n: radarDeals.filter((d) => PROPOSAL_PLUS.has(d.stage)).length, src: 'Streak', of: 'streak' },
     { id: 'signed', label: 'Signed (full cycle)', n: radarClients.length, src: 'Streak' },
   ];
 
