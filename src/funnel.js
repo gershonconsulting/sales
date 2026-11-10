@@ -27,7 +27,8 @@ export function buildFunnel({ radar, pipelineDef, gcBoxes, projectBoxes, now = D
   const deals = (gcBoxes || []).map((b) => {
     const origin = (om.key && om.names[String((b.fields || {})[om.key] || '')]) || '';
     const m = matches[b.name] || null;
-    const viaRadar = origin === 'Botdog' || radarSourced(m, b.creationTimestamp);
+    // a source typed by hand wins; the automatic Radar match only fills in boxes with no source (or a generic 'LinkedIn')
+    const viaRadar = origin === 'Botdog' || ((!origin || origin === 'LinkedIn') && radarSourced(m, b.creationTimestamp));
     return { key: b.boxKey || b.key, name: b.name, stage: b.stageKey, stage_name: STAGE_NAMES[b.stageKey] || b.stageKey, origin: origin || 'Unknown', viaRadar, radar: m };
   });
   const open = deals.filter((d) => d.stage !== '5012');

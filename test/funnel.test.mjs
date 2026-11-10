@@ -2,12 +2,13 @@ import assert from 'node:assert/strict';
 import { buildFunnel, clientName } from '../src/funnel.js';
 
 const D = (s) => Date.parse(s);
-const pipelineDef = { fields: [{ key: 1003, name: 'Origin', dropdownSettings: { items: [{ key: '9224', name: 'Botdog' }, { key: '9020', name: 'LinkedIn' }] } }] };
+const pipelineDef = { fields: [{ key: 1003, name: 'Origin', dropdownSettings: { items: [{ key: '9224', name: 'Botdog' }, { key: '9020', name: 'LinkedIn' }, { key: '9231', name: 'Habib Hassim' }] } }] };
 const radar = {
   collected: 100, graded_ab: 40, salesnav: 90, pushed: 80, invited: 10, connected: 4,
   connected_list: [{ name: 'A B', company: 'Kleos' }, { name: 'C D', company: 'Acme' }],
   matches: {
     Acme: { pushed: true, first_pushed: '2026-09-01T00:00:00Z' },      // pushed before box -> radar
+    Intro: { pushed: true, first_pushed: '2026-09-01T00:00:00Z' },     // on radar but source typed by hand -> not radar
     Late: { pushed: true, first_pushed: '2026-10-20T00:00:00Z' },      // pushed after box -> not radar
     Client1: { pushed: true, first_pushed: '2026-08-01T00:00:00Z' },   // signed after push -> full cycle
     Client2: { pushed: true, first_pushed: '2026-10-29T00:00:00Z' },   // on radar after signing -> not
@@ -17,6 +18,7 @@ const gcBoxes = [
   { boxKey: 'b1', name: 'Acme', stageKey: '5011', creationTimestamp: D('2026-09-10'), fields: { 1003: '9020' } },
   { boxKey: 'b2', name: 'Late', stageKey: '5002', creationTimestamp: D('2026-10-01'), fields: {} },
   { boxKey: 'b3', name: 'DLOC', stageKey: '5015', creationTimestamp: D('2026-10-01'), fields: { 1003: '9224' } },
+  { boxKey: 'b5', name: 'Intro', stageKey: '5003', creationTimestamp: D('2026-10-28'), fields: { 1003: '9231' } },
   { boxKey: 'b4', name: 'Old', stageKey: '5012', creationTimestamp: D('2026-01-01'), fields: { 1003: '9224' } },
 ];
 const projectBoxes = [
