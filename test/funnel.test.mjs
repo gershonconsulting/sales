@@ -27,7 +27,9 @@ const projectBoxes = [
   { name: 'Client2 - Anne (TP)', creationTimestamp: D('2026-06-01') },
 ];
 
-const f = buildFunnel({ radar, pipelineDef, gcBoxes, projectBoxes, now: D('2026-11-10') });
+const campaignDef = { fields: [{ key: 1002, name: 'Origin', dropdownSettings: { items: [{ key: '9207', name: 'Botdog' }] } }] };
+const campaignBoxes = [{ name: 'Kleos', fields: { 1002: '9207' } }, { name: 'Other', fields: {} }];
+const f = buildFunnel({ radar, pipelineDef, gcBoxes, projectBoxes, campaignDef, campaignBoxes, now: D('2026-11-10') });
 const step = (id) => f.steps.find((s) => s.id === id).n;
 
 assert.equal(clientName('Altavia - Anne (LF)'), 'Altavia');
@@ -45,4 +47,5 @@ assert.deepEqual(f.accepted_no_deal.map((p) => p.company), ['Kleos']);
 const empty = buildFunnel({ radar: null, pipelineDef: {}, gcBoxes: [], projectBoxes: [] });
 assert.equal(empty.radar_ok, false);
 assert.equal(f.steps.find((x) => x.id === 'invited').of, 'pushed');
+assert.equal(step('campaign'), 1);
 console.log('funnel tests passed');

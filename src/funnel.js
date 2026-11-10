@@ -21,7 +21,7 @@ function radarSourced(match, createdAt) {
   return !createdAt || Date.parse(match.first_pushed) < createdAt;
 }
 
-export function buildFunnel({ radar, pipelineDef, gcBoxes, projectBoxes, now = Date.now() }) {
+export function buildFunnel({ radar, pipelineDef, gcBoxes, projectBoxes, campaignDef, campaignBoxes, now = Date.now() }) {
   const om = originMap(pipelineDef || {});
   const matches = (radar && radar.matches) || {};
   const deals = (gcBoxes || []).map((b) => {
@@ -48,6 +48,10 @@ export function buildFunnel({ radar, pipelineDef, gcBoxes, projectBoxes, now = D
   }).sort((a, b) => a.name.localeCompare(b.name));
   const radarClients = clients.filter((c) => c.viaRadar);
 
+  // GC Campaigns: accepted LinkedIn contacts turned into campaign boxes (Origin = Botdog)
+  const cm = originMap(campaignDef || {});
+  const campaignRadar = (campaignBoxes || []).filter((b) => cm.key && cm.names[String((b.fields || {})[cm.key] || '')] === 'Botdog');
+
   const r = radar || {};
   const steps = [
     { id: 'collected', label: 'Collected on Radar', n: r.collected ?? null, src: 'Radar' },
@@ -56,6 +60,7 @@ export function buildFunnel({ radar, pipelineDef, gcBoxes, projectBoxes, now = D
     { id: 'pushed', label: 'Pushed to Botdog', n: r.pushed ?? null, src: 'Radar', of: 'collected' },
     { id: 'invited', label: 'Invited by Botdog', n: r.invited ?? null, src: 'Botdog', of: 'pushed' },
     { id: 'connected', label: 'Accepted the invitation', n: r.connected ?? null, src: 'Botdog', of: 'invited' },
+    { id: 'campaign', label: 'In GC Campaigns (Botdog)', n: campaignRadar.length, src: 'Streak', of: 'connected' },
     { id: 'pulse', label: 'Engaged on LinkedIn (Pulse)', n: null, src: 'Pulse', note: 'Pulse is not linked to Radar prospects yet' },
     { id: 'streak', label: 'Open deal in Streak', n: radarDeals.length, src: 'Streak' },
     { id: 'proposal', label: 'Proposal sent or later', n: radarDeals.filter((d) => PROPOSAL_PLUS.has(d.stage)).length, src: 'Streak', of: 'streak' },
