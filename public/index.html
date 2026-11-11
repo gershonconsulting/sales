@@ -7,6 +7,26 @@
 <meta name="theme-color" content="#FE1B04">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FE1B04'/%3E%3Cpath d='M14 44l12-12 8 8 16-18' fill='none' stroke='%23fff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/unified-theme.css?v=1.2.1">
+<style>
+.hv-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.hv-k{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px}
+.hv-k b{display:block;font-size:22px;line-height:1.2}.hv-k span{font-size:12px;color:#6b7280}
+.hv-k.hot{border-color:#FE1B04}.hv-k.hot b{color:#FE1B04}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{border:1px solid #e5e7eb;background:#fff;border-radius:999px;padding:5px 11px;font-size:13px;cursor:pointer}
+.chip.on{background:#FE1B04;border-color:#FE1B04;color:#fff}
+#hvLeads tr.lead{cursor:pointer}#hvLeads tr.lead:hover td{background:#fafafa}
+.st{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;background:#f1f1f3;white-space:nowrap}
+.st.Interested,.st.Meeting.booked,.st.Won{background:#e7f6ec;color:#166534}.st.Replied{background:#e8f0fe;color:#1e40af}
+.st.Not.interested,.st.Lost{background:#f3f4f6;color:#6b7280}.st.Contacted{background:#fff7ed;color:#9a3412}
+.flag{font-size:11px;border-radius:6px;padding:1px 6px;margin-left:4px;background:#fff5f5;color:#d11200;white-space:nowrap}
+.hv-dlg{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:50;justify-content:flex-end}
+.hv-dlg.open{display:flex}.hv-pane{background:#f7f7f8;width:min(760px,100%);height:100%;overflow:auto;padding:18px}
+.tl{border-left:3px solid #e5e7eb;padding:8px 12px;margin:10px 0;background:#fff;border-radius:0 10px 10px 0}
+.tl.in{border-left-color:#1e40af}.tl.out.sent{border-left-color:#16a34a}.tl.pending_review{border-left-color:#FE1B04}
+.tl pre{white-space:pre-wrap;font-family:inherit;margin:6px 0 0}
+.hv-pane input,.hv-pane textarea,.hv-pane select{width:100%;box-sizing:border-box}
+.bars{display:flex;align-items:flex-end;gap:4px;height:70px}.bars div{flex:1;background:#FE1B04;border-radius:3px 3px 0 0;min-height:2px}
+</style>
 </head>
 <body>
 <div class="auth-wrap" id="authWrap" style="display:none">
@@ -28,6 +48,9 @@
     <button data-t="chat" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat</button>
     <button data-t="due"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Due<span class="cnt" id="dueBadge" hidden></span></button>
     <button data-t="drafts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Drafts</button>
+    <div class="nav-h">Campaigns</div>
+    <button data-t="harvey"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="m4 7 8 6 8-6"/></svg>Harvey H01<span class="cnt" id="hvBadge" hidden></span></button>
+    <div class="nav-h">Pipeline</div>
     <button data-t="funnel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M7 10h10M10 15h4M11 20h2"/></svg>Funnel</button>
     <button data-t="pipe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg>Pipeline</button>
   </nav>
@@ -61,15 +84,23 @@
     <div class="card wrap"><b>Signed clients (GC Clients)</b><table id="fcClients"></table></div>
     <div class="card wrap"><b>Accepted on LinkedIn, no Streak deal yet</b><table id="fcAcc"></table></div>
   </section>
+  <section id="t-harvey" style="display:none">
+    <div class="card"><div class="row"><b id="hvTitle">GC Campaign H01 — Harvey</b><span class="sp"></span><span class="muted" id="hvSync"></span><button class="b" id="hvReload">Refresh</button></div><div class="muted" id="hvWarn"></div></div>
+    <div class="hv-kpis" id="hvKpis"></div>
+    <div class="card"><div class="row"><b>Last 14 days</b><span class="sp"></span><span class="muted" id="hvTarget"></span></div><div class="bars" id="hvBars" title="New companies per day"></div><div class="wrap"><table id="hvAct"></table></div></div>
+    <div class="card"><div class="row"><div class="chips" id="hvChips"></div><span class="sp"></span><input id="hvQ" placeholder="Search name, company, email" style="max-width:260px"></div></div>
+    <div class="card wrap"><table id="hvLeads"></table></div>
+  </section>
   <section id="t-pipe" style="display:none"><div class="card wrap"><table id="pipeT"></table></div></section>
 </main>
+<div class="hv-dlg" id="hvDlg"><div class="hv-pane" id="hvPane"></div></div>
 </div>
 </div>
 <script>
-const APP_VERSION='v1.2.1';
+const APP_VERSION='v1.3.0';
 const $=s=>document.querySelector(s);
 document.querySelectorAll('.appver').forEach(e=>e.textContent=APP_VERSION);
-const TITLES={chat:'Chat',due:'Due follow-ups',drafts:'Drafts',funnel:'Funnel',pipe:'Pipeline'};
+const TITLES={harvey:'Harvey — Campaign H01',chat:'Chat',due:'Due follow-ups',drafts:'Drafts',funnel:'Funnel',pipe:'Pipeline'};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function api(p,b){const r=await fetch(p,b===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||r.status);return j}
 let deals=[],hist=[];
@@ -86,7 +117,9 @@ async function boot(){
   $('#whoEmail').textContent=m.email||'';
   $('#gmailBtn').textContent=m.gmail?'Gmail connected ✓':'Connect Gmail';$('#gmailBtn').title=m.gmail?(m.gmailAccount||''):'Connect Gmail';
   $('#status').textContent=m.lastSync?('Synced '+new Date(m.lastSync).toLocaleString()):'Not synced yet';
-  await loadPipe();
+  loadPipe();
+  loadHarvey(true);
+  const h=location.hash.slice(1);if(TITLES[h])show(h);
 }
 async function loadPipe(){
   try{deals=await api('/api/pipeline')}catch(e){deals=[]}
@@ -106,7 +139,7 @@ async function loadDrafts(){
   <div class="row">${d.status==='linkedin_queue'?`<button class="b p" onclick="act(${d.id},'done')">Mark sent</button>`:`<button class="b p" onclick="act(${d.id},'approve')">${d.channel==='email'?'Approve &amp; send':'Approve → LinkedIn queue'}</button>`}<button class="b" onclick="act(${d.id},'reject')">Discard</button></div></div>`).join(''):'<div class="card muted">No drafts waiting.</div>';
 }
 async function act(id,a){const c=$('#d'+id),data={};c.querySelectorAll('[data-f]').forEach(e=>data[e.dataset.f]=e.value);try{await api(`/api/drafts/${id}/${a}`,data);loadDrafts();loadPipe()}catch(e){alert(e.message)}}
-function show(t){$('#pageTitle').textContent=TITLES[t];$('#app').classList.remove('open');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['chat','due','drafts','funnel','pipe'].forEach(x=>$('#t-'+x).style.display=x===t?'block':'none');if(t==='drafts')loadDrafts();if(t==='funnel')loadFunnel()}
+function show(t){$('#pageTitle').textContent=TITLES[t];$('#app').classList.remove('open');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['chat','due','drafts','funnel','pipe','harvey'].forEach(x=>$('#t-'+x).style.display=x===t?'block':'none');if(t==='drafts')loadDrafts();if(t==='funnel')loadFunnel();if(t==='harvey')loadHarvey();history.replaceState(null,'','#'+t)}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.t));
 $('#syncBtn').onclick=async()=>{$('#syncBtn').textContent='Syncing…';try{const r=await api('/api/sync',{});$('#status').textContent=r.synced+' deals synced';await loadPipe()}catch(e){alert(e.message)}$('#syncBtn').textContent='Sync Streak'};
 $('#weeklyBtn').onclick=async()=>{$('#weeklyBtn').textContent='Drafting…';try{const r=await api('/api/weekly',{});alert(r.drafts+' drafts created');show('drafts')}catch(e){alert(e.message)}$('#weeklyBtn').textContent='Draft all due'};
@@ -136,6 +169,77 @@ async function loadFunnel(refresh){
   $('#fcAcc').innerHTML=f.accepted_no_deal.length?'<tr><th>Person</th><th>Company</th><th class="hide-sm">Grade</th><th>Accepted</th></tr>'+f.accepted_no_deal.map(p=>`<tr><td>${p.linkedin?`<a href="${esc(p.linkedin)}" target="_blank" rel="noopener">${esc(p.name)}</a>`:esc(p.name)}</td><td>${esc(p.company||'—')}</td><td class="hide-sm">${esc(p.grade||'')}</td><td>${day(p.connected_at)}</td></tr>`).join(''):'<tr><td class="muted">None.</td></tr>';
 }
 $('#fcRefresh').onclick=()=>loadFunnel(true);
+
+/* ---------- Harvey campaign H01 ---------- */
+let HV=null,hvFilter='all';
+const ago=t=>{if(!t)return'—';const d=Math.floor((Date.now()-t)/864e5);return d<=0?'today':d===1?'yesterday':d+'d ago'};
+const stc=s=>'st '+String(s||'').replace(/\s+/g,'.');
+const HVF=[['all','All'],['approve','Waiting for your approval'],['followup','Follow-up due'],['replied','Replied / interested'],['meeting','Meetings'],['contacted','Contacted, no reply'],['new','Not contacted yet'],['bounced','Bounced'],['unfit','Unfit']];
+function hvMatch(l){switch(hvFilter){case'approve':return l.waiting>0;case'followup':return l.followup_due;case'replied':return l.replied||['Replied','Interested'].includes(l.stage);case'meeting':return['Meeting booked','Won'].includes(l.stage);case'contacted':return l.sent>0&&!l.replied;case'new':return!l.sent&&!l.unfit;case'bounced':return l.bounced;case'unfit':return l.unfit;default:return!l.unfit}}
+async function loadHarvey(quiet){
+  try{HV=await api('/api/harvey')}catch(e){if(!quiet)$('#hvWarn').textContent=e.message;return}
+  const S=HV.stats;
+  $('#hvBadge').textContent=S.waiting_approval+S.followup_due;$('#hvBadge').hidden=!(S.waiting_approval+S.followup_due);
+  $('#hvSync').textContent=HV.last_sync?'Synced from Harvey '+new Date(HV.last_sync).toLocaleString():'';
+  const w=[];if(!HV.linked)w.push('Harvey is not linked to this app yet.');else if(!HV.last_sync)w.push('Waiting for the first sync from Harvey.');else if(Date.now()-HV.last_sync>2*36e5)w.push('Last sync from Harvey is '+ago(HV.last_sync)+' — Harvey or its server may be down.');
+  if(HV.server&&HV.server.service&&HV.server.service!=='active')w.push('Harvey service on the server: '+HV.server.service);
+  if(HV.server&&HV.server.sending_paused)w.push('Sending is paused in Harvey: '+HV.server.sending_paused);
+  $('#hvWarn').textContent=w.join(' · ');
+  const K=(n,l,hot,f)=>`<div class="hv-k${hot&&n?' hot':''}" ${f?`style="cursor:pointer" onclick="hvSet('${f}')"`:''}><b>${fmt(n)}</b><span>${l}</span></div>`;
+  $('#hvKpis').innerHTML=K(S.companies,'Companies found')+K(S.prospects,'Leads (people)')+K(S.verified,'Verified emails')+K(S.waiting_approval,'Emails waiting for approval',1,'approve')+K(S.emails_sent,'Emails sent')+K(S.contacted,'Leads contacted',0,'contacted')+K(S.replied,'Replied'+(S.reply_rate!=null?' ('+S.reply_rate+'%)':''),0,'replied')+K(S.interested,'Interested',0,'replied')+K(S.meetings,'Meetings',0,'meeting')+K(S.followup_due,'Follow-ups due',1,'followup')+K(S.bounced,'Bounced',0,'bounced');
+  const A=HV.activity,mx=Math.max(1,...A.map(a=>a.companies));
+  $('#hvBars').innerHTML=A.map(a=>`<div style="height:${100*a.companies/mx}%" title="${a.day}: ${a.companies} companies"></div>`).join('');
+  const met=A.filter(a=>a.companies>=S.target_per_day).length;
+  $('#hvTarget').textContent=`Target ${S.target_per_day} new companies/day — met ${met} of 14 days`;
+  $('#hvAct').innerHTML='<tr><th>Day</th><th>New companies</th><th>New leads</th><th>Emails sent</th><th>Replies</th></tr>'+A.slice().reverse().filter(a=>a.companies||a.prospects||a.sent||a.replies).map(a=>`<tr><td>${a.day}</td><td>${a.companies}</td><td>${a.prospects}</td><td>${a.sent}</td><td>${a.replies}</td></tr>`).join('');
+  $('#hvChips').innerHTML=HVF.map(([k,l])=>{const n=HV.leads.filter(x=>{const o=hvFilter;hvFilter=k;const r=hvMatch(x);hvFilter=o;return r}).length;return`<button class="chip${hvFilter===k?' on':''}" onclick="hvSet('${k}')">${l} · ${n}</button>`}).join('');
+  hvTable();
+}
+function hvSet(k){hvFilter=k;if(HV)loadHarveyFromCache()}
+function loadHarveyFromCache(){$('#hvChips').querySelectorAll('.chip').forEach((c,i)=>c.classList.toggle('on',HVF[i][0]===hvFilter));hvTable()}
+function hvTable(){
+  const q=$('#hvQ').value.trim().toLowerCase();
+  const rows=HV.leads.filter(hvMatch).filter(l=>!q||[l.name,l.company,l.email,l.domain,l.title].join(' ').toLowerCase().includes(q));
+  $('#hvLeads').innerHTML=rows.length?'<tr><th>Lead</th><th>Status</th><th class="hide-sm">Emails</th><th>Last touch</th><th></th></tr>'+rows.map(l=>`<tr class="lead" onclick="hvOpen('${l.id}')"><td><b>${esc(l.name)}</b>${l.title?' <span class="muted">· '+esc(l.title)+'</span>':''}<div class="muted">${esc(l.company)}${l.domain?' · '+esc(l.domain):''}</div></td><td><span class="${stc(l.stage)}">${esc(l.stage)}</span>${l.waiting?'<span class="flag">'+l.waiting+' to approve</span>':''}${l.followup_due?'<span class="flag">follow up</span>':''}${l.bounced?'<span class="flag">bounced</span>':''}${l.pending_actions?'<span class="flag" style="background:#eef2ff;color:#3730a3">sending to Harvey…</span>':''}</td><td class="hide-sm">${l.sent} sent${l.approved?' · '+l.approved+' queued':''}<div class="muted">${esc(l.email||'no email')}${l.email&&!l.email_verified?' (unverified)':''}</div></td><td>${ago(l.last_touch||l.created_at)}</td><td><button class="b">Open</button></td></tr>`).join(''):'<tr><td class="muted">'+(HV.leads.length?'No lead in this view.':'No leads yet — they appear after Harvey\'s first sync.')+'</td></tr>';
+}
+$('#hvQ').oninput=()=>HV&&hvTable();
+$('#hvReload').onclick=()=>loadHarvey();
+$('#hvDlg').onclick=e=>{if(e.target.id==='hvDlg')hvClose()};
+function hvClose(){$('#hvDlg').classList.remove('open')}
+async function hvOpen(id){
+  $('#hvDlg').classList.add('open');$('#hvPane').innerHTML='<div class="card muted">Loading…</div>';
+  let L;try{L=await api('/api/harvey/lead/'+id)}catch(e){$('#hvPane').innerHTML='<div class="card">'+esc(e.message)+'</div>';return}
+  const p=L.prospect,c=L.company,k=L.crm||{};
+  const tl=L.timeline.map(t=>{
+    const when=t.at?new Date(t.at).toLocaleString():'';
+    if(t.type==='message')return`<div class="tl ${t.dir}"><div class="row"><b>${t.dir==='in'?'↩ Reply from '+esc(p.first_name||'them'):'→ Harvey replied'}</b><span class="sp"></span><span class="muted">${when}</span></div>${t.intent&&t.dir==='in'?'<span class="tag">'+esc(t.intent)+'</span>':''}<pre>${esc(t.body)}</pre></div>`;
+    const label={sent:'Sent',pending_review:'Waiting for your approval',approved:'Approved — Harvey will send it',sending:'Sending',rejected:'Rejected',cancelled:'Cancelled',failed:'Failed'}[t.status]||t.status;
+    const editable=t.status==='pending_review';
+    return`<div class="tl out ${t.status}" id="e_${t.id}"><div class="row"><b>${t.kind==='sequence'?'Email '+t.step:'Email ('+esc(t.kind)+')'}</b><span class="tag">${esc(label)}</span><span class="sp"></span><span class="muted">${t.status==='sent'?when:(t.at?'planned '+when:'')}</span></div><div class="muted">To ${esc(t.to)}</div>${t.error?'<div class="muted" style="color:#d11200">'+esc(t.error)+'</div>':''}
+    ${editable?`<input data-f="subject" value="${esc(t.subject)}" style="margin-top:6px"><textarea data-f="body" rows="8" style="margin-top:6px">${esc(t.body)}</textarea><div class="row" style="margin-top:6px"><button class="b p" onclick="hvAct('${p.id}','approve','${t.id}')">Approve — Harvey sends it</button><button class="b" onclick="hvAct('${p.id}','edit','${t.id}')">Save changes</button><button class="b" onclick="hvAct('${p.id}','reject','${t.id}')">Reject</button></div>`:`<div style="margin-top:6px"><b>${esc(t.subject)}</b></div><pre>${esc(t.body)}</pre>${t.status==='approved'?`<button class="b" onclick="hvAct('${p.id}','reject','${t.id}')">Stop this email</button>`:''}`}</div>`}).join('')||'<div class="muted">No email yet.</div>';
+  const acts=L.actions.length?'<div class="muted" style="margin-top:8px">'+L.actions.map(a=>`${new Date(a.created_at).toLocaleString()} · ${esc(a.type)} · ${a.status==='pending'?'waiting for Harvey (next sync ≤15 min)':esc(a.status)+(a.result?' — '+esc(a.result):'')}`).join('<br>')+'</div>':'';
+  $('#hvPane').innerHTML=`<div class="row"><button class="b" onclick="hvClose()">← Back</button><span class="sp"></span><span class="${stc(L.stage)}">${esc(L.stage)}</span></div>
+  <div class="card"><h2 style="margin:0">${esc(p.first_name)} ${esc(p.last_name)}</h2><div>${esc(p.title||'')}${c.name?' · <b>'+esc(c.name)+'</b>':''}</div>
+  <div class="muted" style="margin-top:6px">${p.email?esc(p.email)+(p.email_verified?' ✓ verified':' (not verified)'):'no email'}${p.linkedin?` · <a href="${esc(p.linkedin)}" target="_blank" rel="noopener">LinkedIn</a>`:''}${c.website||c.domain?` · <a href="${esc(c.website||'https://'+c.domain)}" target="_blank" rel="noopener">${esc(c.domain||c.website)}</a>`:''}${c.location?' · '+esc(c.location):''}${c.industry?' · '+esc(c.industry):''}</div>
+  ${p.notes?`<details style="margin-top:8px"><summary>What Harvey found</summary><pre style="white-space:pre-wrap;font-family:inherit">${esc(p.notes)}</pre></details>`:''}${c.description?`<details><summary>About the company</summary><p>${esc(c.description)}</p></details>`:''}</div>
+  <div class="card"><b>Follow-up</b><div class="row" style="margin-top:6px;align-items:flex-end"><label style="flex:1">Status<select id="hvStage">${L.stages.map(s=>`<option ${s===L.stage?'selected':''}>${s}</option>`).join('')}</select></label><label style="flex:1">Next follow-up<input type="date" id="hvNext" value="${esc(k.next_followup||'')}"></label></div>
+  <label>Notes<textarea id="hvNotes" rows="3">${esc(k.notes||'')}</textarea></label><div class="row" style="margin-top:6px"><button class="b p" onclick="hvCrm('${p.id}')">Save</button>${k.stage?`<button class="b" onclick="hvCrm('${p.id}',1)">Back to automatic status (${esc(L.stage_auto)})</button>`:''}<span class="muted" id="hvCrmMsg"></span></div></div>
+  <div class="card"><b>Email exchange</b>${tl}${acts}</div>
+  <div class="card" id="hvNew"><b>Write a follow-up</b><div class="muted">Goes to Harvey as a new email waiting for your approval; it appears above within 15 minutes and is sent from Harvey's mailbox only once you approve it.</div>
+  <input data-f="subject" placeholder="Subject" style="margin-top:6px"><textarea data-f="body" rows="7" placeholder="Message" style="margin-top:6px"></textarea>
+  <div class="row" style="margin-top:6px"><button class="b" onclick="hvAi('${p.id}')" id="hvAiBtn">✍️ Draft with AI</button><button class="b p" onclick="hvAct('${p.id}','followup')">Queue for approval</button></div></div>`;
+}
+async function hvAct(pid,type,eid){
+  const box=eid?$('#e_'+eid):$('#hvNew'),data={type,outbox_id:eid||''};
+  if(box&&type!=='reject')box.querySelectorAll('[data-f]').forEach(e=>data[e.dataset.f]=e.value);
+  if(type==='approve'&&!confirm('Approve this email? Harvey will send it from its mailbox at its next send slot.'))return;
+  if(type==='reject'&&!confirm('Reject this email? Harvey will not send it.'))return;
+  try{await api('/api/harvey/lead/'+pid+'/action',data);await hvOpen(pid);loadHarvey(true)}catch(e){alert(e.message)}
+}
+async function hvCrm(pid,reset){
+  try{await api('/api/harvey/lead/'+pid+'/crm',reset?{stage:null,next_followup:$('#hvNext').value,notes:$('#hvNotes').value}:{stage:$('#hvStage').value,next_followup:$('#hvNext').value,notes:$('#hvNotes').value});await hvOpen(pid);loadHarvey(true)}catch(e){alert(e.message)}
+}
+async function hvAi(pid){$('#hvAiBtn').textContent='Writing…';try{const d=await api('/api/harvey/lead/'+pid+'/aidraft',{});const b=$('#hvNew');b.querySelector('[data-f=subject]').value=d.subject;b.querySelector('[data-f=body]').value=d.body}catch(e){alert(e.message)}$('#hvAiBtn').textContent='✍️ Draft with AI'}
 boot();
 </script>
 </body>
