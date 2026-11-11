@@ -1,5 +1,6 @@
 // sales.gershon.ai — GC Sales Copilot (Cloudflare Worker)
 import { buildFunnel } from './funnel.js';
+import { harveyMachine, harveyUser } from './harvey.js';
 const MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 const STAGES = { '5001': '1. Lead', '5002': '2. Contacted', '5010': '3. Scheduled', '5003': '4. Pitched', '5011': '5. Proposal Sent', '5013': '6. Nurturing', '5005': '7. Negotiating', '5015': '8. Closing', '5012': '9. Recycled' };
 // follow-up rhythm in days per stage
@@ -24,6 +25,7 @@ export default {
       if (p === '/api/setup' && post) return setup(req, env);
       if (p === '/api/login' && post) return login(req, env);
       if (p === '/oauth/google/callback') return googleCallback(env, url);
+      if (p === '/api/harvey/ingest' || p === '/api/harvey/ack') return harveyMachine(req, env, p); // Harvey server, token auth
       const user = await auth(req, env);
       if (!user) return p.startsWith('/oauth') ? Response.redirect(url.origin + '/', 302) : json({ error: 'unauthorized' }, 401);
       if (p === '/oauth/google/start') return googleStart(env, url);
@@ -49,6 +51,7 @@ export default {
       const m = p.match(/^\/api\/drafts\/(\d+)\/(approve|reject|update|done)$/);
       if (m && post) return json(await draftAction(env, +m[1], m[2], await req.json().catch(() => ({}))));
       if (p === '/api/weekly' && post) return json(await weekly(env));
+      if (p === '/api/harvey' || p.startsWith('/api/harvey/')) return harveyUser(req, env, p, ai);
       return json({ error: 'not found' }, 404);
     } catch (e) {
       return json({ error: String((e && e.message) || e) }, 500);

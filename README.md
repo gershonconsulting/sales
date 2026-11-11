@@ -1,6 +1,6 @@
 # Sales by Gershon.AI — sales.gershon.ai
 
-Sales copilot (v1.1.0, unified Gershon design: `public/unified-theme.css`). "GC Sales" is only the digest email sender name.
+Sales copilot (v1.3.0, unified Gershon design: `public/unified-theme.css`). "GC Sales" is only the digest email sender name.
 
 Chat + follow-up engine for the Streak **GC Pipeline**.
 
@@ -9,6 +9,7 @@ Chat + follow-up engine for the Streak **GC Pipeline**.
 - Every Monday: drafts a follow-up for each due deal and emails the "GC Sales" digest to report@gershonconsulting.com.
 - Emails go out from Olivier's Gmail **only after approval** in the app; each send is logged as a comment on the Streak box.
 - LinkedIn messages are drafted into a queue that Charles sends via Chrome (no LinkedIn API exists).
+- **Harvey H01 campaign** (`#harvey`): leads, stats, full email exchanges and follow-up for Harvey's cold-email campaign, synced from the Harvey server every 15 min (`src/harvey.js`).
 - Chat with the pipeline, powered by Cloudflare Workers AI (Llama 3.3 70B). No Anthropic/OpenAI keys.
 
 Stack: Cloudflare Worker + D1 + Workers AI + static assets. Push to `main` deploys via Cloudflare Workers Builds (Git integration; see HANDOFF.txt).
