@@ -2,7 +2,7 @@
    Linalysis layout + gershon.ai red. Same tokens as Radar / Pulse / Task / Client.
    White 240px sidebar, red active pill, 12px cards, #1d1d1f text, #e5e7eb borders. */
 :root{
-  --brand:#CC3333;--brand-dark:#a8281f;--brand-tint:#fdf2f2;--brand-ring:rgba(204,51,51,.22);
+  --brand:#FE1B04;--brand-dark:#d11200;--brand-tint:#fff5f5;--brand-ring:rgba(254,27,4,.22);
   --bg:#f7f7f8;--card:#fff;--fg:#1d1d1f;--muted:#6e6e73;--line:#e5e7eb;
   --acc:var(--brand);--warn:#b54708;--ok:#067647;
   --side:240px;--radius:12px;
