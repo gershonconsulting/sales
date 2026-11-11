@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sales by Gershon.AI</title>
-<meta name="theme-color" content="#CC3333">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23CC3333'/%3E%3Cpath d='M14 44l12-12 8 8 16-18' fill='none' stroke='%23fff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/unified-theme.css?v=1.2.0">
+<meta name="theme-color" content="#FE1B04">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FE1B04'/%3E%3Cpath d='M14 44l12-12 8 8 16-18' fill='none' stroke='%23fff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/unified-theme.css?v=1.2.1">
 </head>
 <body>
 <div class="auth-wrap" id="authWrap" style="display:none">
 <div id="auth" class="card">
-  <div class="wm"><svg viewBox="0 0 64 64" width="36" height="36" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#CC3333"/><path d="M14 44l12-12 8 8 16-18" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><span><span class="wm-t">Sales</span><span class="wm-s">by Gershon.AI</span></span></div>
+  <div class="wm"><svg viewBox="0 0 64 64" width="36" height="36" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#FE1B04"/><path d="M14 44l12-12 8 8 16-18" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><span><span class="wm-t">Sales</span><span class="wm-s">by Gershon.AI</span></span></div>
   <h2 id="authTitle">Sign in</h2>
   <p class="muted" id="authHint"></p>
   <label for="em">Email</label><input id="em" type="email" autocomplete="username" placeholder="you@company.com">
@@ -22,7 +22,7 @@
 </div>
 <div id="app" class="shell" style="display:none">
 <aside class="side" id="side">
-  <a class="wm" href="/"><svg viewBox="0 0 64 64" width="28" height="28" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#CC3333"/><path d="M14 44l12-12 8 8 16-18" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><span><span class="wm-t">Sales</span><span class="wm-s">by Gershon.AI</span></span></a>
+  <a class="wm" href="/"><svg viewBox="0 0 64 64" width="28" height="28" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#FE1B04"/><path d="M14 44l12-12 8 8 16-18" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><span><span class="wm-t">Sales</span><span class="wm-s">by Gershon.AI</span></span></a>
   <nav>
     <div class="nav-h">Copilot</div>
     <button data-t="chat" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat</button>
@@ -66,7 +66,7 @@
 </div>
 </div>
 <script>
-const APP_VERSION='v1.2.0';
+const APP_VERSION='v1.2.1';
 const $=s=>document.querySelector(s);
 document.querySelectorAll('.appver').forEach(e=>e.textContent=APP_VERSION);
 const TITLES={chat:'Chat',due:'Due follow-ups',drafts:'Drafts',funnel:'Funnel',pipe:'Pipeline'};
@@ -128,7 +128,7 @@ async function loadFunnel(refresh){
   $('#fcWarn').textContent=w.join(' · ');
   const top=Math.max(1,...f.steps.map(s=>s.n||0));const byId=Object.fromEntries(f.steps.map(s=>[s.id,s]));
   $('#fcSteps').innerHTML=f.steps.map(s=>{const pct=s.n==null?0:Math.max(.6,100*s.n/top);const base=s.of&&byId[s.of]&&byId[s.of].n;const conv=(base&&s.n!=null)?Math.round(1000*s.n/base)/10+'% of '+byId[s.of].label.split(' ')[0].toLowerCase():'';
-    return `<div style="display:grid;grid-template-columns:minmax(150px,230px) 1fr 70px 110px;gap:10px;align-items:center;margin:6px 0"><span>${esc(s.label)} <span class="muted">· ${esc(s.src)}</span></span><div style="background:#f1f1f3;border-radius:6px;height:18px"><div style="width:${pct}%;height:18px;border-radius:6px;background:${s.n==null?'#e5e7eb':'#CC3333'}"></div></div><b style="text-align:right">${fmt(s.n)}</b><span class="muted" style="text-align:right">${s.note?'':conv}</span></div>${s.note?`<div class="muted" style="margin:-4px 0 6px">${esc(s.note)}</div>`:''}`}).join('');
+    return `<div style="display:grid;grid-template-columns:minmax(150px,230px) 1fr 70px 110px;gap:10px;align-items:center;margin:6px 0"><span>${esc(s.label)} <span class="muted">· ${esc(s.src)}</span></span><div style="background:#f1f1f3;border-radius:6px;height:18px"><div style="width:${pct}%;height:18px;border-radius:6px;background:${s.n==null?'#e5e7eb':'#FE1B04'}"></div></div><b style="text-align:right">${fmt(s.n)}</b><span class="muted" style="text-align:right">${s.note?'':conv}</span></div>${s.note?`<div class="muted" style="margin:-4px 0 6px">${esc(s.note)}</div>`:''}`}).join('');
   const so=f.stage_order;
   $('#fcSrc').innerHTML='<tr><th>Source</th>'+so.map(k=>`<th class="hide-sm">${esc(f.stage_names[k].replace(/^\d+\.\s*/,''))}</th>`).join('')+'<th>Total</th></tr>'+f.by_source.map(r=>`<tr><td>${esc(r.origin)}</td>`+so.map(k=>`<td class="hide-sm">${r.stages[k]||''}</td>`).join('')+`<td><b>${r.total}</b></td></tr>`).join('');
   $('#fcDeals').innerHTML=f.radar_deals.length?'<tr><th>Deal</th><th>Stage</th><th>Source field</th></tr>'+f.radar_deals.map(d=>`<tr><td><b>${esc(d.name)}</b></td><td><span class="tag">${esc(d.stage_name)}</span></td><td>${esc(d.origin)}</td></tr>`).join(''):'<tr><td class="muted">None yet.</td></tr>';
