@@ -36,6 +36,7 @@ Note: the Claude GitHub integration can write files via the contents API but NOT
 ❌ Pulse not linked to Radar prospects (no shared key yet).
 
 DONE ✅
+✅ 2026-11-11 brand red #FE1B04 (nightly) — ready to test after merge (v1.2.1: #CC3333/#a8281f/#fdf2f2 -> #FE1B04/#d11200/#fff5f5 in unified-theme.css, logo mark, theme-color, favicon)
 ✅ v1.1.0 (2026-10-22, PR nightly/2026-10-22-sales-unified-design): unified Gershon design — white 240px sidebar with red #CC3333 active pill, "Sales by Gershon.AI" wordmark (red mark + BY GERSHON.AI), 12px white cards on #f7f7f8, #1d1d1f text, #e5e7eb borders, red primary buttons + focus rings, light sign-in with red button, title "Sales by Gershon.AI", 📈 emoji + blue #0B5FFF removed, version pill in sidebar + sign-in, Sign out button, phone: drawer menu + deal tables stack as rows (no sideways scroll at 390px). Semantic colours kept (orange "due" days). Preview = Claude artifact (no branch previews for this app).
 ✅ Worker sales-gershon + D1 sales-db live; https://sales.gershon.ai returns 200 (secrets still missing, see CP-sales-001)
 (v1 code:)
