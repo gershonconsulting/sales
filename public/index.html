@@ -6,7 +6,7 @@
 <title>Sales by Gershon.AI</title>
 <meta name="theme-color" content="#FE1B04">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FE1B04'/%3E%3Cpath d='M14 44l12-12 8 8 16-18' fill='none' stroke='%23fff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/unified-theme.css?v=1.3.1">
+<link rel="stylesheet" href="/unified-theme.css?v=1.4.0">
 <style>
 .hv-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
 .hv-k{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px}
@@ -53,6 +53,8 @@
     <div class="nav-h">Pipeline</div>
     <button data-t="funnel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M7 10h10M10 15h4M11 20h2"/></svg>Funnel</button>
     <button data-t="pipe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg>Pipeline</button>
+    <div class="nav-h">Account</div>
+    <button data-t="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings<span class="cnt" id="setBadge" hidden>!</span></button>
   </nav>
   <div class="side-f">
     <button class="b" id="syncBtn">Sync Streak</button>
@@ -91,16 +93,31 @@
     <div class="card"><div class="row"><div class="chips" id="hvChips"></div><span class="sp"></span><input id="hvQ" placeholder="Search name, company, email" style="max-width:260px"></div></div>
     <div class="card wrap"><table id="hvLeads"></table></div>
   </section>
+  <section id="t-settings" style="display:none">
+    <div class="card">
+      <div class="row"><b>Streak CRM</b><span class="sp"></span><span class="tag" id="stState">…</span></div>
+      <div class="muted" id="stInfo" style="margin-top:6px"></div>
+      <label for="stKey" style="display:block;margin-top:12px">Streak API key</label>
+      <div class="row"><input id="stKey" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your Streak API key" style="flex:1"><button class="b p" id="stSave">Save &amp; sync</button></div>
+      <div class="muted" style="margin-top:6px">In Gmail: Streak menu → <b>Integrations</b> → <b>Streak API</b> → create or copy your key. It is checked with Streak before it is saved, then your pipeline syncs right away. The key is stored on the server and is never shown again here.</div>
+      <div class="row" style="margin-top:10px"><span class="muted" id="stMsg"></span><span class="sp"></span><button class="b" id="stSync">Sync now</button><button class="b" id="stRemove" hidden>Remove key</button></div>
+    </div>
+    <div class="card">
+      <div class="row"><b>Gmail</b><span class="sp"></span><span class="tag" id="gmState">…</span></div>
+      <div class="muted" id="gmInfo" style="margin-top:6px"></div>
+      <div class="row" style="margin-top:10px"><a class="b" href="/oauth/google/start" id="gmBtn">Connect Gmail</a></div>
+    </div>
+  </section>
   <section id="t-pipe" style="display:none"><div class="card wrap"><table id="pipeT"></table></div></section>
 </main>
 <div class="hv-dlg" id="hvDlg"><div class="hv-pane" id="hvPane"></div></div>
 </div>
 </div>
 <script>
-const APP_VERSION='v1.3.1';
+const APP_VERSION='v1.4.0';
 const $=s=>document.querySelector(s);
 document.querySelectorAll('.appver').forEach(e=>e.textContent=APP_VERSION);
-const TITLES={harvey:'Harvey — Campaign H01',chat:'Chat',due:'Due follow-ups',drafts:'Drafts',funnel:'Funnel',pipe:'Pipeline'};
+const TITLES={harvey:'Harvey — Campaign H01',chat:'Chat',due:'Due follow-ups',drafts:'Drafts',funnel:'Funnel',pipe:'Pipeline',settings:'Settings'};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function api(p,b){const r=await fetch(p,b===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||r.status);return j}
 let deals=[],hist=[];
@@ -119,6 +136,7 @@ async function boot(){
   $('#status').textContent=m.lastSync?('Synced '+new Date(m.lastSync).toLocaleString()):'Not synced yet';
   loadPipe();
   loadHarvey(true);
+  loadSettings();
   const h=location.hash.slice(1);if(TITLES[h])show(h);
 }
 async function loadPipe(){
@@ -139,7 +157,7 @@ async function loadDrafts(){
   <div class="row">${d.status==='linkedin_queue'?`<button class="b p" onclick="act(${d.id},'done')">Mark sent</button>`:`<button class="b p" onclick="act(${d.id},'approve')">${d.channel==='email'?'Approve &amp; send':'Approve → LinkedIn queue'}</button>`}<button class="b" onclick="act(${d.id},'reject')">Discard</button></div></div>`).join(''):'<div class="card muted">No drafts waiting.</div>';
 }
 async function act(id,a){const c=$('#d'+id),data={};c.querySelectorAll('[data-f]').forEach(e=>data[e.dataset.f]=e.value);try{await api(`/api/drafts/${id}/${a}`,data);loadDrafts();loadPipe()}catch(e){alert(e.message)}}
-function show(t){$('#pageTitle').textContent=TITLES[t];$('#app').classList.remove('open');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['chat','due','drafts','funnel','pipe','harvey'].forEach(x=>$('#t-'+x).style.display=x===t?'block':'none');if(t==='drafts')loadDrafts();if(t==='funnel')loadFunnel();if(t==='harvey')loadHarvey();history.replaceState(null,'','#'+t)}
+function show(t){$('#pageTitle').textContent=TITLES[t];$('#app').classList.remove('open');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['chat','due','drafts','funnel','pipe','harvey','settings'].forEach(x=>$('#t-'+x).style.display=x===t?'block':'none');if(t==='drafts')loadDrafts();if(t==='funnel')loadFunnel();if(t==='harvey')loadHarvey();if(t==='settings')loadSettings();history.replaceState(null,'','#'+t)}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.t));
 $('#syncBtn').onclick=async()=>{$('#syncBtn').textContent='Syncing…';try{const r=await api('/api/sync',{});$('#status').textContent=r.synced+' deals synced';await loadPipe()}catch(e){alert(e.message)}$('#syncBtn').textContent='Sync Streak'};
 $('#weeklyBtn').onclick=async()=>{$('#weeklyBtn').textContent='Drafting…';try{const r=await api('/api/weekly',{});alert(r.drafts+' drafts created');show('drafts')}catch(e){alert(e.message)}$('#weeklyBtn').textContent='Draft all due'};
@@ -240,6 +258,33 @@ async function hvCrm(pid,reset){
   try{await api('/api/harvey/lead/'+pid+'/crm',reset?{stage:null,next_followup:$('#hvNext').value,notes:$('#hvNotes').value}:{stage:$('#hvStage').value,next_followup:$('#hvNext').value,notes:$('#hvNotes').value});await hvOpen(pid);loadHarvey(true)}catch(e){alert(e.message)}
 }
 async function hvAi(pid){$('#hvAiBtn').textContent='Writing…';try{const d=await api('/api/harvey/lead/'+pid+'/aidraft',{});const b=$('#hvNew');b.querySelector('[data-f=subject]').value=d.subject;b.querySelector('[data-f=body]').value=d.body}catch(e){alert(e.message)}$('#hvAiBtn').textContent='✍️ Draft with AI'}
+/* ---------- Settings ---------- */
+function renderSettings(s){
+  const k=s.streak,when=t=>t?new Date(t).toLocaleString():'never';
+  $('#stState').textContent=k.connected?'Connected':'Not connected';
+  $('#stState').style.cssText=k.connected?'background:#e7f6ec;color:#166534':'background:#fff5f5;color:#d11200';
+  $('#setBadge').hidden=k.connected;
+  const src=k.source==='settings'?`Key ${esc(k.hint)} saved here${k.account?' for <b>'+esc(k.account)+'</b>':''}${k.saved_at?' on '+when(k.saved_at):''}.`:k.source==='cloudflare'?`Using the key ${esc(k.hint)} set in Cloudflare. Paste a key below to manage it from here instead.`:'No Streak key yet — paste it below to get live CRM data.';
+  $('#stInfo').innerHTML=src+`<br>Last sync: ${when(k.last_sync)}${k.deals!=null&&k.last_sync?' · '+k.deals+' deals':''}${k.last_error?`<br><span style="color:#d11200">Last sync failed: ${esc(k.last_error)}</span>`:''}`;
+  $('#stRemove').hidden=k.source!=='settings';$('#stSync').disabled=!k.connected;
+  $('#gmState').textContent=s.gmail.connected?'Connected':'Not connected';
+  $('#gmState').style.cssText=s.gmail.connected?'background:#e7f6ec;color:#166534':'';
+  $('#gmInfo').textContent=s.gmail.connected?('Sending approved emails as '+(s.gmail.account||'your Gmail account')+'.'):'Connect Gmail so approved drafts can be sent.';
+  $('#gmBtn').textContent=s.gmail.connected?'Reconnect Gmail':'Connect Gmail';
+}
+async function loadSettings(){try{renderSettings(await api('/api/settings'))}catch(e){$('#stInfo').textContent=e.message}}
+$('#stSave').onclick=async()=>{
+  const key=$('#stKey').value.trim();if(!key){$('#stMsg').textContent='Paste your Streak API key first.';return}
+  $('#stSave').disabled=true;$('#stMsg').textContent='Checking the key with Streak…';
+  try{const r=await api('/api/settings/streak',{key});$('#stKey').value='';renderSettings(r.settings);
+    $('#stMsg').textContent=r.sync?`Saved ✓ — ${r.sync.synced} deals synced from Streak.`:`Key saved ✓, but the sync failed: ${r.sync_error}`;
+    if(r.sync){$('#status').textContent='Synced '+new Date(r.sync.at).toLocaleString();loadPipe()}
+  }catch(e){$('#stMsg').textContent=e.message}
+  $('#stSave').disabled=false;
+};
+$('#stKey').onkeydown=e=>{if(e.key==='Enter')$('#stSave').click()};
+$('#stSync').onclick=async()=>{$('#stMsg').textContent='Syncing…';try{const r=await api('/api/sync',{});$('#stMsg').textContent=r.synced+' deals synced ✓';$('#status').textContent='Synced '+new Date(r.at).toLocaleString();loadPipe()}catch(e){$('#stMsg').textContent=e.message}loadSettings()};
+$('#stRemove').onclick=async()=>{if(!confirm('Remove the Streak key saved here? Syncing stops unless a key is also set in Cloudflare.'))return;try{const r=await api('/api/settings/streak/remove',{});renderSettings(r.settings);$('#stMsg').textContent='Key removed.'}catch(e){$('#stMsg').textContent=e.message}};
 boot();
 </script>
 </body>

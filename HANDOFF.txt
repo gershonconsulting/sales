@@ -1,4 +1,4 @@
-sales.gershon.ai — Sales by Gershon.AI — HANDOFF (updated 2026-11-17, v1.3.1)
+sales.gershon.ai — Sales by Gershon.AI — HANDOFF (updated 2026-11-20, v1.4.0)
 ==============================================================================
 
 WHAT IT IS
@@ -34,6 +34,11 @@ Note: the Claude GitHub integration can write files via the contents API but NOT
 ❌ RADAR_FUNNEL_TOKEN must be pasted by Olivier in Cloudflare → sales-gershon → Settings → Variables and secrets (Claude may not enter keys).
 ✅ 35 LinkedIn drafts NOT sent on purpose: Botdog already sent these contacts a 2-message sequence (signed BD26, last 2026-10-18) with no reply; a 3rd generic note would be pushy. Drafts stay in the GC Campaigns notes.
 ❌ Pulse not linked to Radar prospects (no shared key yet).
+
+2026-11-20 (v1.4.0) — Settings page with Streak API key
+✅ Sidebar → Account → Settings (https://sales.gershon.ai/#settings): paste the Streak API key → checked with Streak, saved in D1 (settings.streak_api_key), pipeline synced immediately. Overrides the Cloudflare STREAK_API_KEY variable (src/settings.js withKeys). Key never returned to the browser (last 4 only). Remove key / Sync now / last sync error / Gmail status.
+✅ Tests: test/settings.test.mjs (part of npm test).
+❌ Olivier pastes his key once in Settings.
 
 2026-11-17 (v1.3.1) — version fix (nightly/2026-11-17-sales-version)
 ✅ Footer and asset cache-buster now agree: APP_VERSION v1.3.1 and unified-theme.css?v=1.3.1 (was footer v1.3.0 / ?v=1.2.1, so browsers could keep a stale CSS). test/version.test.mjs guards it (part of npm test).
