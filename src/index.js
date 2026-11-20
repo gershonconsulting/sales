@@ -1,6 +1,7 @@
 // sales.gershon.ai — GC Sales Copilot (Cloudflare Worker)
 import { buildFunnel } from './funnel.js';
 import { harveyMachine, harveyUser } from './harvey.js';
+import { buildOverview } from './campaigns.js';
 const MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 const STAGES = { '5001': '1. Lead', '5002': '2. Contacted', '5010': '3. Scheduled', '5003': '4. Pitched', '5011': '5. Proposal Sent', '5013': '6. Nurturing', '5005': '7. Negotiating', '5015': '8. Closing', '5012': '9. Recycled' };
 // follow-up rhythm in days per stage
@@ -35,6 +36,7 @@ export default {
       }
       if (p === '/api/pipeline') return json(await pipeline(env));
       if (p === '/api/sync' && post) return json(await syncStreak(env));
+      if (p === '/api/overview') return json(await overview(env, url.searchParams.has('refresh')));
       if (p === '/api/funnel') return json(await funnel(env, url.searchParams.has('refresh')));
       if (p === '/api/chat' && post) {
         const b = await req.json();
@@ -58,7 +60,7 @@ export default {
     }
   },
   async scheduled(event, env, ctx) {
-    if (event.cron === '0 6 * * *') ctx.waitUntil(syncStreak(env).then(() => funnel(env, true)));
+    if (event.cron === '0 6 * * *') ctx.waitUntil(syncStreak(env).then(() => funnel(env, true)).then(() => overview(env, true)));
     if (event.cron === '0 10 * * 1') ctx.waitUntil(syncStreak(env).then(() => weekly(env)));
   },
 };
@@ -187,6 +189,36 @@ async function funnel(env, refresh) {
   const out = buildFunnel({ radar, pipelineDef, gcBoxes, clientDef, clientBoxes, campaignDef, campaignBoxes });
   out.radar_error = radarError;
   await setSetting(env, 'funnel_cache', JSON.stringify(out));
+  return out;
+}
+
+/* ---------------- overview: every campaign on one page ---------------- */
+async function overview(env, refresh) {
+  if (!refresh) {
+    const c = await getSetting(env, 'overview_cache');
+    if (c) { const j = JSON.parse(c); if (Date.now() - j.generated_at < 30 * 60000) return j; }
+  }
+  if (!env.STREAK_API_KEY) throw new Error('STREAK_API_KEY secret is not set');
+  const [pipelineDef, gcBoxes, clientDef, clientBoxes, campaignDef, campaignBoxes] = await Promise.all([
+    streak(env, `v1/pipelines/${env.PIPELINE_KEY}`),
+    streak(env, `v1/pipelines/${env.PIPELINE_KEY}/boxes`),
+    env.CLIENTS_PIPELINE_KEY ? streak(env, `v1/pipelines/${env.CLIENTS_PIPELINE_KEY}`).catch(() => ({})) : {},
+    env.CLIENTS_PIPELINE_KEY ? streak(env, `v1/pipelines/${env.CLIENTS_PIPELINE_KEY}/boxes`).catch(() => []) : [],
+    env.CAMPAIGNS_PIPELINE_KEY ? streak(env, `v1/pipelines/${env.CAMPAIGNS_PIPELINE_KEY}`).catch(() => ({})) : {},
+    env.CAMPAIGNS_PIPELINE_KEY ? streak(env, `v1/pipelines/${env.CAMPAIGNS_PIPELINE_KEY}/boxes`).catch(() => []) : [],
+  ]);
+  const warnings = [];
+  let harvey = null, radar = null;
+  try { // Harvey H01 numbers, through the same handler as the Harvey page
+    const r = await harveyUser(new Request(env.APP_URL + '/api/harvey'), env, '/api/harvey', ai);
+    const h = await r.json();
+    if (!r.ok) throw new Error(h.error || r.status);
+    harvey = { stats: h.stats, activity: h.activity, last_sync: h.last_sync };
+  } catch (e) { warnings.push('Harvey: ' + (e.message || e)); }
+  try { const f = JSON.parse((await getSetting(env, 'funnel_cache')) || 'null'); if (f) radar = Object.fromEntries(f.steps.map((s) => [s.id, s.n])); } catch (e) { /* no funnel cache yet */ }
+  const out = buildOverview({ campaignDef, campaignBoxes, pipelineDef, gcBoxes, clientDef, clientBoxes, harvey, radar });
+  out.warnings = warnings;
+  await setSetting(env, 'overview_cache', JSON.stringify(out));
   return out;
 }
 
