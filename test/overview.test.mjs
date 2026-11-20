@@ -1,0 +1,24 @@
+// Overview page: campaign rows, deal attribution, Harvey merge, 7-day leads vs target.
+import { buildOverview } from '../src/campaigns.js';
+const now = Date.parse('2026-11-20T12:00:00Z'), D = 86400000;
+const def = (items) => ({ fields: [{ key: '1002', name: 'Origin', dropdownSettings: { items: items.map(([key, name]) => ({ key, name })) } }] });
+const campaignDef = def([['1', 'CC01'], ['2', 'CC02'], ['3', 'Botdog']]);
+const box = (o, stage, ageDays) => ({ fields: { 1002: o }, stageKey: stage, creationTimestamp: now - ageDays * D, lastUpdatedTimestamp: now - ageDays * D });
+const campaignBoxes = [box('1', '5001', 1), box('1', '5002', 2), box('1', '5003', 20), box('2', '5001', 30), box('3', '5002', 3)];
+const pipelineDef = def([['a', 'CC01'], ['b', 'Friend']]);
+const gcBoxes = [box('a', '5011', 5), box('a', '5015', 5), box('b', '5002', 5), box('a', '5012', 5)];
+const clientDef = def([['x', 'CC01']]);
+const clientBoxes = [box('x', '5004', 1)];
+const harvey = { stats: { contacted: 12, replied: 3, meetings: 1, waiting_approval: 4, followup_due: 2 }, activity: [{ day: '2026-11-19', prospects: 5 }], last_sync: now - D };
+const o = buildOverview({ campaignDef, campaignBoxes, pipelineDef, gcBoxes, clientDef, clientBoxes, harvey, radar: { pushed: 99 }, now });
+const by = Object.fromEntries(o.campaigns.map((r) => [r.code, r]));
+const eq = (a, b, m) => { if (JSON.stringify(a) !== JSON.stringify(b)) { console.error('FAIL', m, a, '!=', b); process.exit(1); } };
+eq(o.campaigns.map((r) => r.code), ['CC01', 'CC02', 'H01', 'Botdog'], 'order: CC codes, Harvey, Botdog');
+eq([by.CC01.contacted, by.CC01.responded, by.CC01.calls, by.CC01.new7], [3, 2, 1, 2], 'CC01 counts');
+eq([by.CC01.deals, by.CC01.proposal, by.CC01.hot, by.CC01.clients, by.CC01.active_clients], [2, 2, 1, 1, 1], 'CC01 deals/clients (recycled excluded)');
+eq(by.CC02.stale_days, 30, 'CC02 stale');
+eq([by.H01.contacted, by.H01.responded, by.H01.src, by.H01.waiting_approval], [12, 3, 'Harvey', 4], 'Harvey merged');
+eq([o.kpis.open_deals, o.kpis.proposal_plus, o.kpis.hot, o.kpis.clients_active, o.kpis.radar_pushed], [3, 2, 1, 1, 99], 'kpis');
+eq([o.kpis.new_leads_7d, o.kpis.target_7d], [8, 70], 'new leads 7d = 3 GC Campaigns + 5 Harvey');
+eq(o.daily.length, 14, '14 days');
+console.log('ok: overview (' + o.campaigns.length + ' campaigns)');
