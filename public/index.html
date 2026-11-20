@@ -6,7 +6,7 @@
 <title>Sales by Gershon.AI</title>
 <meta name="theme-color" content="#FE1B04">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FE1B04'/%3E%3Cpath d='M14 44l12-12 8 8 16-18' fill='none' stroke='%23fff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/unified-theme.css?v=1.3.1">
+<link rel="stylesheet" href="/unified-theme.css?v=1.4.0">
 <style>
 .hv-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
 .hv-k{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px}
@@ -49,6 +49,8 @@
     <button data-t="due"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Due<span class="cnt" id="dueBadge" hidden></span></button>
     <button data-t="drafts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Drafts</button>
     <div class="nav-h">Campaigns</div>
+    <button data-t="camps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>All campaigns<span class="cnt" id="ccBadge" hidden></span></button>
+    <div id="campNav"></div>
     <button data-t="harvey"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="m4 7 8 6 8-6"/></svg>Harvey H01<span class="cnt" id="hvBadge" hidden></span></button>
     <div class="nav-h">Pipeline</div>
     <button data-t="funnel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M7 10h10M10 15h4M11 20h2"/></svg>Funnel</button>
@@ -91,16 +93,33 @@
     <div class="card"><div class="row"><div class="chips" id="hvChips"></div><span class="sp"></span><input id="hvQ" placeholder="Search name, company, email" style="max-width:260px"></div></div>
     <div class="card wrap"><table id="hvLeads"></table></div>
   </section>
+  <section id="t-camps" style="display:none">
+    <div class="card"><div class="row"><b id="ccHead">Claude campaigns</b><span class="sp"></span><span class="muted" id="ccAt"></span><button class="b" id="ccRefresh">Refresh</button></div><div class="muted" id="ccWarn"></div></div>
+    <div class="hv-kpis" id="ccKpis"></div>
+    <div class="card"><div class="row"><b>New companies reached per day — all campaigns</b><span class="sp"></span><span class="muted" id="ccTarget"></span></div><div class="bars" id="ccBars"></div></div>
+    <div class="card wrap"><table id="ccTable"></table></div>
+    <div class="muted" style="margin:4px 2px 16px">Source: Streak Origin field (GC Campaigns, GC Pipeline, GC Clients). A company that moved from GC Campaigns to a deal or a client is counted once, at its furthest step. "Real reply" = an email came back and the lead was moved on (Responded, a deal, a call) — or you marked it by hand. An email back on a lead still in "Contacted" waits in "To check" (usually out-of-office or bounce).</div>
+  </section>
+  <section id="t-camp" style="display:none">
+    <div class="card"><div class="row"><button class="b" onclick="show('camps')">← All campaigns</button><b id="c1Title" style="font-size:18px"></b><span class="st" id="c1Status"></span><span class="sp"></span><span id="c1Links"></span></div>
+      <div class="row" style="margin-top:8px"><input id="c1Desc" placeholder="What this campaign is" style="flex:1"><input id="c1Target" type="number" min="0" placeholder="Target/day" style="width:110px"><button class="b" id="c1Save">Save</button><span class="muted" id="c1Msg"></span></div>
+      <div class="muted" id="c1Warn" style="margin-top:6px"></div></div>
+    <div class="hv-kpis" id="c1Kpis"></div>
+    <div class="card"><b>Funnel</b><div id="c1Steps" style="margin-top:8px"></div></div>
+    <div class="card"><div class="row"><b>Last 14 days</b><span class="sp"></span><span class="muted" id="c1Tgt"></span></div><div class="bars" id="c1Bars"></div><div class="muted" id="c1Ctry" style="margin-top:8px"></div></div>
+    <div class="card"><div class="row"><div class="chips" id="c1Chips"></div><span class="sp"></span><input id="c1Q" placeholder="Search company or country" style="max-width:240px"></div></div>
+    <div class="card wrap"><table id="c1Leads"></table></div>
+  </section>
   <section id="t-pipe" style="display:none"><div class="card wrap"><table id="pipeT"></table></div></section>
 </main>
 <div class="hv-dlg" id="hvDlg"><div class="hv-pane" id="hvPane"></div></div>
 </div>
 </div>
 <script>
-const APP_VERSION='v1.3.1';
+const APP_VERSION='v1.4.0';
 const $=s=>document.querySelector(s);
 document.querySelectorAll('.appver').forEach(e=>e.textContent=APP_VERSION);
-const TITLES={harvey:'Harvey — Campaign H01',chat:'Chat',due:'Due follow-ups',drafts:'Drafts',funnel:'Funnel',pipe:'Pipeline'};
+const TITLES={camps:'Campaigns',camp:'Campaign',harvey:'Harvey — Campaign H01',chat:'Chat',due:'Due follow-ups',drafts:'Drafts',funnel:'Funnel',pipe:'Pipeline'};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function api(p,b){const r=await fetch(p,b===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||r.status);return j}
 let deals=[],hist=[];
@@ -119,7 +138,8 @@ async function boot(){
   $('#status').textContent=m.lastSync?('Synced '+new Date(m.lastSync).toLocaleString()):'Not synced yet';
   loadPipe();
   loadHarvey(true);
-  const h=location.hash.slice(1);if(TITLES[h])show(h);
+  loadCamps(false,true);
+  const h=location.hash.slice(1);if(TITLES[h]||/^camp-/.test(h))show(h);
 }
 async function loadPipe(){
   try{deals=await api('/api/pipeline')}catch(e){deals=[]}
@@ -139,8 +159,9 @@ async function loadDrafts(){
   <div class="row">${d.status==='linkedin_queue'?`<button class="b p" onclick="act(${d.id},'done')">Mark sent</button>`:`<button class="b p" onclick="act(${d.id},'approve')">${d.channel==='email'?'Approve &amp; send':'Approve → LinkedIn queue'}</button>`}<button class="b" onclick="act(${d.id},'reject')">Discard</button></div></div>`).join(''):'<div class="card muted">No drafts waiting.</div>';
 }
 async function act(id,a){const c=$('#d'+id),data={};c.querySelectorAll('[data-f]').forEach(e=>data[e.dataset.f]=e.value);try{await api(`/api/drafts/${id}/${a}`,data);loadDrafts();loadPipe()}catch(e){alert(e.message)}}
-function show(t){$('#pageTitle').textContent=TITLES[t];$('#app').classList.remove('open');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['chat','due','drafts','funnel','pipe','harvey'].forEach(x=>$('#t-'+x).style.display=x===t?'block':'none');if(t==='drafts')loadDrafts();if(t==='funnel')loadFunnel();if(t==='harvey')loadHarvey();history.replaceState(null,'','#'+t)}
+function show(t){let sec=t;if(/^camp-/.test(t)){sec='camp';CUR=t.slice(5)}$('#pageTitle').textContent=sec==='camp'?'Campaign '+CUR:TITLES[t];$('#app').classList.remove('open');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['chat','due','drafts','funnel','pipe','harvey','camps','camp'].forEach(x=>$('#t-'+x).style.display=x===sec?'block':'none');if(sec==='camps')loadCamps();if(sec==='camp')loadCamps(false,false,true);if(t==='drafts')loadDrafts();if(t==='funnel')loadFunnel();if(t==='harvey')loadHarvey();history.replaceState(null,'','#'+t)}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.t));
+let CUR=null;
 $('#syncBtn').onclick=async()=>{$('#syncBtn').textContent='Syncing…';try{const r=await api('/api/sync',{});$('#status').textContent=r.synced+' deals synced';await loadPipe()}catch(e){alert(e.message)}$('#syncBtn').textContent='Sync Streak'};
 $('#weeklyBtn').onclick=async()=>{$('#weeklyBtn').textContent='Drafting…';try{const r=await api('/api/weekly',{});alert(r.drafts+' drafts created');show('drafts')}catch(e){alert(e.message)}$('#weeklyBtn').textContent='Draft all due'};
 function addMsg(role,text){const el=document.createElement('div');el.className='msg '+(role==='user'?'u':'');let h=esc(text);h=h.replace(/^DRAFT:\s*(.+?)\s*\|\s*(email|linkedin)\s*$/gmi,(m,n,ch)=>{const d=deals.find(x=>x.name.trim().toLowerCase()===n.trim().toLowerCase());return d?`<button class="b" onclick="draft('${d.key}','${ch.toLowerCase()}')">✍️ Draft ${ch} for ${esc(d.name)}</button>`:m});el.innerHTML=h;$('#log').appendChild(el);$('#log').scrollTop=1e9}
@@ -240,6 +261,58 @@ async function hvCrm(pid,reset){
   try{await api('/api/harvey/lead/'+pid+'/crm',reset?{stage:null,next_followup:$('#hvNext').value,notes:$('#hvNotes').value}:{stage:$('#hvStage').value,next_followup:$('#hvNext').value,notes:$('#hvNotes').value});await hvOpen(pid);loadHarvey(true)}catch(e){alert(e.message)}
 }
 async function hvAi(pid){$('#hvAiBtn').textContent='Writing…';try{const d=await api('/api/harvey/lead/'+pid+'/aidraft',{});const b=$('#hvNew');b.querySelector('[data-f=subject]').value=d.subject;b.querySelector('[data-f=body]').value=d.body}catch(e){alert(e.message)}$('#hvAiBtn').textContent='✍️ Draft with AI'}
+
+/* ---------- Claude campaigns (CC01, CC02, …) ---------- */
+let CC=null,c1Filter='all';
+const LV=['','Reached','Email back','Replied','Call / meeting','Proposal','Signed'];
+const SB='https://www.streak.com/a/boxes/';
+async function loadCamps(refresh,quiet,single){
+  if(!CC||refresh){if(!quiet)$('#ccAt').textContent='Loading…';
+    try{CC=await api('/api/campaigns'+(refresh?'?refresh=1':''))}catch(e){if(!quiet){$('#ccAt').textContent='';$('#ccWarn').textContent=e.message;$('#c1Warn').textContent=e.message}return}}
+  const T=CC.totals;
+  $('#ccBadge').textContent=T.to_check;$('#ccBadge').hidden=!T.to_check;$('#ccBadge').title='Emails back to check';
+  $('#campNav').innerHTML=CC.campaigns.map(c=>`<button data-t="camp-${c.code}" class="${location.hash==='#camp-'+c.code?'on':''}" title="${esc(c.description)}"><span style="width:8px;height:8px;border-radius:50%;margin:0 8px 0 4px;background:${c.status==='active'?'#16a34a':'#d1d5db'}"></span>${esc(c.code)}${c.to_check?`<span class="cnt">${c.to_check}</span>`:''}</button>`).join('');
+  $('#campNav').querySelectorAll('button').forEach(b=>b.onclick=()=>show(b.dataset.t));
+  $('#ccAt').textContent='Updated '+new Date(CC.generated_at).toLocaleString();
+  const w=[];if(CC.error)w.push('Last refresh failed: '+CC.error);if(CC.missing&&CC.missing.length)w.push('Could not read: '+CC.missing.join(', '));$('#ccWarn').textContent=w.join(' · ');
+  $('#ccHead').textContent=`${T.campaigns} campaigns · ${T.active} active this week`;
+  const K=(n,l,hot)=>`<div class="hv-k${hot&&n?' hot':''}"><b>${fmt(n)}</b><span>${l}</span></div>`;
+  $('#ccKpis').innerHTML=K(T.reached,'Companies reached')+K(T.replies,'Real replies')+K(T.calls,'Calls / meetings')+K(T.signed,'Signed clients')+K(T.to_check,'Emails back to check',1);
+  const A=CC.activity,mx=Math.max(CC.daily_target,...A.map(a=>a.reached));
+  $('#ccBars').innerHTML=A.map(a=>`<div style="height:${100*a.reached/mx}%;${a.reached>=CC.daily_target?'':'opacity:.45'}" title="${a.day}: ${a.reached}"></div>`).join('');
+  $('#ccTarget').textContent=`Target ${CC.daily_target}/day — met ${A.filter(a=>a.reached>=CC.daily_target).length} of 14 days · ${A.slice(-7).reduce((s,a)=>s+a.reached,0)} this week`;
+  $('#ccTable').innerHTML='<tr><th>Campaign</th><th>Reached</th><th class="hide-sm">Last 7d</th><th>Replies</th><th class="hide-sm">Reply rate</th><th>Calls</th><th class="hide-sm">Signed</th><th class="hide-sm">To check</th><th></th></tr>'+CC.campaigns.map(c=>`<tr class="lead" style="cursor:pointer" onclick="show('camp-${c.code}')"><td><b>${esc(c.code)}</b> <span class="st ${c.status==='active'?'Interested':''}">${c.status==='active'?'active':'quiet'}</span><div class="muted">${esc(c.description)}</div></td><td>${c.reached}</td><td class="hide-sm">${c.last7}</td><td><b>${c.replies}</b></td><td class="hide-sm">${c.reply_rate==null?'—':c.reply_rate+'%'}</td><td><b>${c.calls}</b></td><td class="hide-sm">${c.signed}</td><td class="hide-sm">${c.to_check?'<span class="flag">'+c.to_check+'</span>':''}</td><td><button class="b">Open</button></td></tr>`).join('');
+  if(single)renderCamp();
+}
+function renderCamp(){
+  const c=CC&&CC.campaigns.find(x=>x.code===CUR);
+  if(!c){$('#c1Title').textContent=CUR;$('#c1Warn').textContent=CC?'No lead with Origin '+CUR+' in Streak.':'';return}
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==='camp-'+c.code));
+  $('#c1Title').textContent=c.code;$('#c1Status').textContent=c.status==='active'?'active':'quiet';$('#c1Status').className='st '+(c.status==='active'?'Interested':'');
+  $('#c1Links').innerHTML=c.page?`<button class="b" onclick="show('${c.page}')">Open ${esc(c.code)} workspace →</button>`:'';
+  $('#c1Desc').value=c.description;$('#c1Target').value=c.target??'';$('#c1Msg').textContent='';
+  const w=[];if(c.false_responded)w.push(`${c.false_responded} lead(s) sit in "2. Responded" in Streak with no email back — not counted as replies.`);if(c.to_check)w.push(`${c.to_check} email(s) came back on leads still in "Contacted": mark each one below as a real reply or an auto-reply.`);
+  $('#c1Warn').textContent=w.join(' ');
+  const K=(n,l,hot,f)=>`<div class="hv-k${hot&&n?' hot':''}" ${f?`style="cursor:pointer" onclick="c1Set('${f}')"`:''}><b>${n==null?'—':fmt(n)}</b><span>${l}</span></div>`;
+  $('#c1Kpis').innerHTML=K(c.reached,'Companies reached',0,'all')+K(c.last7,'Reached last 7 days')+K(c.replies,'Real replies',0,'replied')+(`<div class="hv-k"><b>${c.reply_rate==null?'—':c.reply_rate+'%'}</b><span>Reply rate</span></div>`)+K(c.calls,'Calls / meetings',0,'call')+K(c.signed,'Signed clients')+K(c.to_check,'To check',1,'check')+K(c.by_pipe.pipeline+c.by_pipe.clients,'Now in GC Pipeline / Clients');
+  const top=Math.max(1,c.steps[0].n);
+  $('#c1Steps').innerHTML=c.steps.map((s,i)=>{const prev=i?c.steps[i-1].n:0;const conv=i&&prev?Math.round(1000*s.n/prev)/10+'% of previous':'';return `<div style="display:grid;grid-template-columns:minmax(130px,200px) 1fr 60px 120px;gap:10px;align-items:center;margin:6px 0"><span>${esc(s.label)}</span><div style="background:#f1f1f3;border-radius:6px;height:18px"><div style="width:${Math.max(.6,100*s.n/top)}%;height:18px;border-radius:6px;background:#FE1B04"></div></div><b style="text-align:right">${fmt(s.n)}</b><span class="muted" style="text-align:right">${conv}</span></div>`}).join('');
+  const A=c.activity,mx=Math.max(1,c.target||0,...A.map(a=>a.reached));
+  $('#c1Bars').innerHTML=A.map(a=>`<div style="height:${100*a.reached/mx}%" title="${a.day}: ${a.reached} reached, ${a.replies} replies"></div>`).join('');
+  $('#c1Tgt').textContent=(c.target?`Target ${c.target}/day — met ${A.filter(a=>a.reached>=c.target).length} of 14 days · `:'')+`${A.reduce((s,a)=>s+a.reached,0)} reached in 14 days`+(c.last_created?' · last new lead '+ago(c.last_created):'');
+  $('#c1Ctry').textContent=c.countries.length?'By country: '+c.countries.slice(0,10).map(x=>x.country+' '+x.n).join(' · '):'';
+  const F=[['all','All'],['check','To check'],['replied','Real replies'],['call','Calls+'],['noreply','No reply yet'],['false','False "Responded"']];
+  $('#c1Chips').innerHTML=F.map(([k,l])=>`<button class="chip${c1Filter===k?' on':''}" onclick="c1Set('${k}')">${l} · ${c.leads.filter(x=>c1Match(x,k)).length}</button>`).join('');
+  const q=$('#c1Q').value.trim().toLowerCase();
+  const rows=c.leads.filter(x=>c1Match(x,c1Filter)).filter(x=>!q||(x.name+' '+x.country+' '+x.stage_name).toLowerCase().includes(q));
+  $('#c1Leads').innerHTML=rows.length?'<tr><th>Company</th><th>Where it is</th><th>Step</th><th class="hide-sm">Reached</th><th class="hide-sm">Last email in</th><th></th></tr>'+rows.map(l=>`<tr><td><a href="${SB}${esc(String(l.key).split(':').pop())}" target="_blank" rel="noopener"><b>${esc(l.name)}</b></a><div class="muted">${esc(l.country||'')}${l.also.length?' · also in '+l.also.join(', '):''}</div></td><td><span class="tag">${esc(l.stage_name)}</span>${l.falseResponded?'<span class="flag">no email back</span>':''}</td><td><span class="st ${l.level>=4?'Interested':l.real?'Replied':l.toCheck?'Contacted':''}">${LV[l.level]}</span>${l.override?` <span class="muted">(by hand)</span>`:''}</td><td class="hide-sm">${day(l.created)}</td><td class="hide-sm">${l.last_in?ago(l.last_in):'—'}</td><td>${l.level<4?`<div class="row">${(!l.real&&(l.inbound||l.falseResponded))||l.override==='auto'?`<button class="b" onclick="c1Mark('${l.key}','real')">Real reply</button>`:''}${l.inbound&&l.override!=='auto'&&(l.toCheck||l.override==='real'||l.real)?`<button class="b" onclick="c1Mark('${l.key}','auto')">Auto-reply</button>`:''}${l.override?`<button class="b" onclick="c1Mark('${l.key}',null)">Undo</button>`:''}</div>`:''}</td></tr>`).join(''):'<tr><td class="muted">No lead in this view.</td></tr>';
+}
+function c1Match(x,k){switch(k){case'check':return x.toCheck;case'replied':return x.real;case'call':return x.level>=4;case'noreply':return !x.inbound&&!x.real;case'false':return x.falseResponded;default:return true}}
+function c1Set(k){c1Filter=k;renderCamp()}
+async function c1Mark(key,value){try{await api('/api/campaigns/override',{key,value});CC=null;await loadCamps(false,true,true)}catch(e){alert(e.message)}}
+$('#c1Q').oninput=()=>renderCamp();
+$('#c1Save').onclick=async()=>{try{await api('/api/campaigns/meta',{code:CUR,description:$('#c1Desc').value,target:$('#c1Target').value});$('#c1Msg').textContent='Saved';CC=null;await loadCamps(false,true,true)}catch(e){$('#c1Msg').textContent=e.message}};
+$('#ccRefresh').onclick=()=>loadCamps(true);
 boot();
 </script>
 </body>
