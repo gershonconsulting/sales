@@ -1,5 +1,7 @@
 {
   "private": true,
   "type": "module",
-  "scripts": { "test": "node test/version.test.mjs && node test/funnel.test.mjs && node --no-warnings test/harvey.test.mjs" }
+  "scripts": {
+    "test": "node test/version.test.mjs && node test/funnel.test.mjs && node --no-warnings test/harvey.test.mjs && node test/overview.test.mjs"
+  }
 }
