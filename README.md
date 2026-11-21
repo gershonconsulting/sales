@@ -1,6 +1,6 @@
 # Sales by Gershon.AI — sales.gershon.ai
 
-Sales copilot (v1.3.1, unified Gershon design: `public/unified-theme.css`). "GC Sales" is only the digest email sender name.
+Sales copilot (v1.4.1, unified Gershon design: `public/unified-theme.css`). "GC Sales" is only the digest email sender name.
 
 Chat + follow-up engine for the Streak **GC Pipeline**.
 

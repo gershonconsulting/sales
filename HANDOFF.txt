@@ -1,4 +1,4 @@
-sales.gershon.ai — Sales by Gershon.AI — HANDOFF (updated 2026-11-20, v1.4.0)
+sales.gershon.ai — Sales by Gershon.AI — HANDOFF (updated 2026-11-20, v1.4.1)
 ==============================================================================
 
 WHAT IT IS
@@ -34,6 +34,18 @@ Note: the Claude GitHub integration can write files via the contents API but NOT
 ❌ RADAR_FUNNEL_TOKEN must be pasted by Olivier in Cloudflare → sales-gershon → Settings → Variables and secrets (Claude may not enter keys).
 ✅ 35 LinkedIn drafts NOT sent on purpose: Botdog already sent these contacts a 2-message sequence (signed BD26, last 2026-10-18) with no reply; a 3rd generic note would be pushy. Drafts stay in the GC Campaigns notes.
 ❌ Pulse not linked to Radar prospects (no shared key yet).
+
+2026-11-20 (v1.4.1) — Claude campaigns: one funnel + dashboard per campaign (feature/claude-campaigns)
+✅ Sidebar → Campaigns → "All campaigns" (#camps): every campaign code found in the Streak Origin field (CC01, CC02, CC03, CC08, CC10, H01, …
+   new codes appear automatically) with reached / last 7 days / real replies / reply rate / calls / signed / to check, plus all-campaign
+   bars vs the 10 new leads/day target.
+✅ Each code gets its own sidebar entry and page (#camp-CC01): funnel (reached → email back → real reply → call → proposal → signed),
+   14-day bars, countries, editable description + per-campaign daily target, lead list with Streak links and filters.
+✅ Leads read from GC Campaigns + GC Pipeline + GC Clients; a company that moved on is counted once at its furthest step.
+✅ "Real reply" = email back AND moved on (Responded / deal / call) or marked by hand. Email back on a lead still in Contacted → "To check"
+   (Real reply / Auto-reply buttons, stored in D1 settings campaign_overrides). "Responded" with no email back is flagged, not counted.
+✅ /api/campaigns (30-min cache, refreshed by the 06:00 UTC cron), /api/campaigns/override, /api/campaigns/meta. Code: src/claude-campaigns.js (kept apart from the Overview module src/campaigns.js). Tests: test/campaigns.test.mjs.
+❌ Streak still holds the false "Responded" boxes (shown flagged on the page) — clean-up in Streak not done.
 
 2026-11-20 (v1.4.0) — Overview page: every sales campaign on one page
 ✅ New default landing page (sidebar → Dashboard → Overview, https://sales.gershon.ai/#overview). /api/overview, 30-min cache in D1 settings 'overview_cache', refreshed by the 06:00 UTC cron after the funnel.
