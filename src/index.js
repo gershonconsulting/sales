@@ -3,6 +3,7 @@ import { buildFunnel } from './funnel.js';
 import { harveyMachine, harveyUser } from './harvey.js';
 import { buildOverview } from './campaigns.js';
 import { campaignsApi, refreshCampaigns } from './claude-campaigns.js';
+import { withKeys, settingsView, saveStreakKey, removeStreakKey } from './settings.js';
 const MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 const STAGES = { '5001': '1. Lead', '5002': '2. Contacted', '5010': '3. Scheduled', '5003': '4. Pitched', '5011': '5. Proposal Sent', '5013': '6. Nurturing', '5005': '7. Negotiating', '5015': '8. Closing', '5012': '9. Recycled' };
 // follow-up rhythm in days per stage
@@ -31,6 +32,21 @@ export default {
       const user = await auth(req, env);
       if (!user) return p.startsWith('/oauth') ? Response.redirect(url.origin + '/', 302) : json({ error: 'unauthorized' }, 401);
       if (p === '/oauth/google/start') return googleStart(env, url);
+      env = await withKeys(env); // Streak key saved in Settings wins over the Cloudflare variable
+      if (p === '/api/settings') return json(await settingsView(env));
+      if (p === '/api/settings/streak' && post) {
+        const b = await req.json().catch(() => ({}));
+        let saved;
+        try { saved = await saveStreakKey(env, b.key); } catch (e) { return json({ error: String(e.message || e) }, 400); }
+        const env2 = await withKeys(env);
+        let sync = null, syncError = null;
+        try { sync = await syncStreak(env2); } catch (e) { syncError = String(e.message || e); }
+        return json({ ...saved, sync, sync_error: syncError, settings: await settingsView(env2) });
+      }
+      if (p === '/api/settings/streak/remove' && post) {
+        await removeStreakKey(env);
+        return json({ ok: true, settings: await settingsView(await withKeys(env)) });
+      }
       if (p === '/api/logout' && post) {
         await env.DB.prepare('DELETE FROM sessions WHERE token=?').bind(cookie(req, 'sid')).run();
         return json({ ok: true }, 200, { 'Set-Cookie': 'sid=; Path=/; Max-Age=0' });
@@ -62,6 +78,7 @@ export default {
     }
   },
   async scheduled(event, env, ctx) {
+    env = await withKeys(env);
     if (event.cron === '0 6 * * *') ctx.waitUntil(syncStreak(env).then(() => funnel(env, true)).then(() => overview(env, true)).then(() => refreshCampaigns(env, streak)));
     if (event.cron === '0 10 * * 1') ctx.waitUntil(syncStreak(env).then(() => weekly(env)));
   },
@@ -128,7 +145,10 @@ async function streak(env, path, opts = {}) {
   return r.json();
 }
 async function syncStreak(env) {
-  if (!env.STREAK_API_KEY) throw new Error('STREAK_API_KEY secret is not set');
+  try { return await syncStreakInner(env); } catch (e) { await setSetting(env, 'last_sync_error', String(e.message || e)).catch(() => {}); throw e; }
+}
+async function syncStreakInner(env) {
+  if (!env.STREAK_API_KEY) throw new Error('Streak is not connected — add your Streak API key in Settings.');
   const boxes = await streak(env, `v1/pipelines/${env.PIPELINE_KEY}/boxes`);
   const now = Date.now();
   const stmts = [];
@@ -148,6 +168,7 @@ async function syncStreak(env) {
   for (let i = 0; i < stmts.length; i += 50) await env.DB.batch(stmts.slice(i, i + 50));
   await env.DB.prepare('DELETE FROM boxes WHERE synced_at < ?').bind(now).run(); // boxes removed from the pipeline
   await setSetting(env, 'last_sync', now);
+  await env.DB.prepare("DELETE FROM settings WHERE k='last_sync_error'").run();
   return { synced: stmts.length, at: now };
 }
 async function streakComment(env, key, message) {
@@ -176,7 +197,7 @@ async function funnel(env, refresh) {
     const c = await getSetting(env, 'funnel_cache');
     if (c) { const j = JSON.parse(c); if (Date.now() - j.generated_at < 30 * 60000) return j; }
   }
-  if (!env.STREAK_API_KEY) throw new Error('STREAK_API_KEY secret is not set');
+  if (!env.STREAK_API_KEY) throw new Error('Streak is not connected — add your Streak API key in Settings.');
   const [pipelineDef, gcBoxes, clientDef, clientBoxes, campaignDef, campaignBoxes] = await Promise.all([
     streak(env, `v1/pipelines/${env.PIPELINE_KEY}`),
     streak(env, `v1/pipelines/${env.PIPELINE_KEY}/boxes`),
