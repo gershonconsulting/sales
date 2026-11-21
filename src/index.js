@@ -2,6 +2,7 @@
 import { buildFunnel } from './funnel.js';
 import { harveyMachine, harveyUser } from './harvey.js';
 import { buildOverview } from './campaigns.js';
+import { campaignsApi, refreshCampaigns } from './claude-campaigns.js';
 const MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 const STAGES = { '5001': '1. Lead', '5002': '2. Contacted', '5010': '3. Scheduled', '5003': '4. Pitched', '5011': '5. Proposal Sent', '5013': '6. Nurturing', '5005': '7. Negotiating', '5015': '8. Closing', '5012': '9. Recycled' };
 // follow-up rhythm in days per stage
@@ -53,6 +54,7 @@ export default {
       const m = p.match(/^\/api\/drafts\/(\d+)\/(approve|reject|update|done)$/);
       if (m && post) return json(await draftAction(env, +m[1], m[2], await req.json().catch(() => ({}))));
       if (p === '/api/weekly' && post) return json(await weekly(env));
+      if (p === '/api/campaigns' || p.startsWith('/api/campaigns/')) { const r = await campaignsApi(req, env, p, streak); if (r) return json(r); }
       if (p === '/api/harvey' || p.startsWith('/api/harvey/')) return harveyUser(req, env, p, ai);
       return json({ error: 'not found' }, 404);
     } catch (e) {
@@ -60,7 +62,7 @@ export default {
     }
   },
   async scheduled(event, env, ctx) {
-    if (event.cron === '0 6 * * *') ctx.waitUntil(syncStreak(env).then(() => funnel(env, true)).then(() => overview(env, true)));
+    if (event.cron === '0 6 * * *') ctx.waitUntil(syncStreak(env).then(() => funnel(env, true)).then(() => overview(env, true)).then(() => refreshCampaigns(env, streak)));
     if (event.cron === '0 10 * * 1') ctx.waitUntil(syncStreak(env).then(() => weekly(env)));
   },
 };
