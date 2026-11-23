@@ -1,16 +1,22 @@
-sales.gershon.ai — Sales by Gershon.AI — HANDOFF (updated 2026-11-20, v1.4.2)
+sales.gershon.ai — Sales by Gershon.AI — HANDOFF (updated 2026-11-23, v1.4.2)
 ==============================================================================
+
+2026-11-21 STATUS (read first)
+✅ v1.4.1 is LIVE (Claude campaigns pages, PR #11). Merging to main auto-deploys in ~5 min (Cloudflare Workers Builds, reconnected 2026-11-10); read the live version from APP_VERSION (sidebar pill / footer).
+✅ The GitHub connector's push_files WORKS for this repo (the older "push_files → 403" note below is outdated). Still not possible from the cloud: .github/workflows writes and plain git push (403).
+❌ PR #12 (Streak key settings, involves secrets) is HELD for Olivier's OK — do not merge without it.
 
 WHAT IT IS
 App name: "Sales by Gershon.AI" (the "GC Sales" name is ONLY the digest email sender display name — Gershon-internal report rule).
 Cloudflare Worker `sales-gershon` + D1 + Workers AI + static UI (public/index.html + public/unified-theme.css).
 Deploy route (since 2026-10-07): Cloudflare Workers Builds (Git integration) builds on every push to main — BUT Cloudflare shows the project "disconnected from your Git account" (CP-sales-001 step 5), so merges do NOT reach sales.gershon.ai until Charles reconnects it. deploy/deploy.yml is only a fallback.
+(Update 2026-11-21: the Git connection was fixed 2026-11-10 — see the status block above and the 2026-11-10 entries; the "disconnected" wording in this paragraph is historical.)
 No build step (plain static HTML/CSS + one Worker file); nothing to npm install.
 Data: Streak "GC Pipeline" (key in wrangler.toml). Email: Gmail OAuth, sends only after approval. Digest: Resend from "GC Sales <sales@gershon.ai>" to report@gershonconsulting.com.
 LinkedIn: drafts queued in the app, sent by Charles via Chrome. Olivier's rule: do NOT use Snov.io for this project.
 AI: Cloudflare Workers AI @cf/meta/llama-3.3-70b-instruct-fp8-fast. Olivier's rule: never use the Fable model.
 Login: Olivier picks his own password on first visit (/api/setup), client.gershoncrm.com pattern.
-Note: the Claude GitHub integration can write files via the contents API but NOT .github/workflows (no workflow scope) and NOT multi-file trees (push_files → 403). Commit one file at a time.
+Note: the Claude GitHub integration can write files via the contents API but NOT .github/workflows (no workflow scope) and NOT multi-file trees (push_files → 403). Commit one file at a time. (Outdated 2026-11-21: push_files now works, see status block.)
 
 2026-10-23 nightly (v1.1.1; rebuilt 2026-11-04 on current main as nightly/2026-11-04-sales-rebuilt, replaces PR #2)
 ✅ Sign-in email box is now EMPTY for every visitor (was pre-filled with olivier@gershonconsulting.com via a value="" attribute in public/index.html). Neutral placeholder "you@company.com"; browser autofill still works (autocomplete="username").
