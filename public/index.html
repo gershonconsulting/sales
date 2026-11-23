@@ -391,5 +391,6 @@ $('#stSync').onclick=async()=>{$('#stMsg').textContent='Syncing…';try{const r=
 $('#stRemove').onclick=async()=>{if(!confirm('Remove the Streak key saved here? Syncing stops unless a key is also set in Cloudflare.'))return;try{const r=await api('/api/settings/streak/remove',{});renderSettings(r.settings);$('#stMsg').textContent='Key removed.'}catch(e){$('#stMsg').textContent=e.message}};
 boot();
 </script>
+<script src="/pw-eye.js" defer></script>
 </body>
 </html>
