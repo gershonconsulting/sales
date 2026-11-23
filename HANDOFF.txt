@@ -1,4 +1,4 @@
-sales.gershon.ai — Sales by Gershon.AI — HANDOFF (updated 2026-11-21, v1.4.1)
+sales.gershon.ai — Sales by Gershon.AI — HANDOFF (updated 2026-11-23, v1.4.2)
 ==============================================================================
 
 2026-11-21 STATUS (read first)
@@ -40,6 +40,12 @@ Note: the Claude GitHub integration can write files via the contents API but NOT
 ❌ RADAR_FUNNEL_TOKEN must be pasted by Olivier in Cloudflare → sales-gershon → Settings → Variables and secrets (Claude may not enter keys).
 ✅ 35 LinkedIn drafts NOT sent on purpose: Botdog already sent these contacts a 2-message sequence (signed BD26, last 2026-10-18) with no reply; a 3rd generic note would be pushy. Drafts stay in the GC Campaigns notes.
 ❌ Pulse not linked to Radar prospects (no shared key yet).
+
+2026-11-20 (v1.4.2) — Settings page with Streak API key
+✅ Sidebar → Account → Settings (https://sales.gershon.ai/#settings): paste the Streak API key → checked with Streak, saved in D1 (settings.streak_api_key), pipeline synced immediately. Overrides the Cloudflare STREAK_API_KEY variable (src/settings.js withKeys). Key never returned to the browser (last 4 only). Remove key / Sync now / last sync error / Gmail status.
+✅ Tests: test/settings.test.mjs (part of npm test).
+❌ Olivier pastes his key once in Settings.
+❌ HELD for Olivier's OK (stores an API key = secrets rule). Rebased 2026-11-21 onto v1.4.1 (Overview + Claude campaigns): withKeys() now also feeds /api/overview and /api/campaigns.
 
 2026-11-20 (v1.4.1) — Claude campaigns: one funnel + dashboard per campaign (feature/claude-campaigns)
 ✅ Sidebar → Campaigns → "All campaigns" (#camps): every campaign code found in the Streak Origin field (CC01, CC02, CC03, CC08, CC10, H01, …
