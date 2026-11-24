@@ -8,13 +8,23 @@ const DAY = 86400000;
 
 // what each code is (editable in the app; these are the defaults)
 export const DEFAULT_META = {
-  CC01: { description: 'New companies from E2 filings, emailed to the CEO' },
-  CC02: { description: 'European companies expanding to the US' },
-  CC03: { description: 'Companies that attended SelectUSA' },
-  CC08: { description: 'E2 email sequence sent through Snov (finished)' },
-  CC09: { description: 'US offices of European trade agencies — referral partners' },
-  H01: { description: 'Harvey cold-email agent', page: 'harvey' },
+  CC01: { name: 'E2 New Companies', description: 'New companies from E2 filings, emailed to the CEO' },
+  CC02: { name: 'Europe to US Growth', description: 'European companies expanding to the US' },
+  CC03: { name: 'SelectUSA Alumni', description: 'Companies that attended SelectUSA' },
+  CC08: { name: 'E2 Snov Sequence', description: 'E2 email sequence sent through Snov (finished)' },
+  CC09: { name: 'European Trade Agencies', description: 'US offices of European trade agencies — referral partners' },
+  CC10: { name: 'STATION F Future 40', description: 'Congratulations to the STATION F Future 40 startups (CEO + 2nd exec)' },
+  CC11: { name: 'Business France Delegations', description: 'Companies in Business France US delegations (Team France Export)' },
+  H01: { name: 'Harvey', description: 'Harvey cold-email agent', page: 'harvey' },
 };
+
+// health by days since the last activity (new lead, email out or email in):
+// green = active within 3 days, orange = more than 3 days, red = more than 6 days
+export function health(lastActivity, now = Date.now()) {
+  if (!lastActivity) return { health: 'red', idle_days: null };
+  const idle = Math.max(0, Math.floor((now - lastActivity) / DAY));
+  return { health: idle > 6 ? 'red' : idle > 3 ? 'orange' : 'green', idle_days: idle };
+}
 
 // stage keys per pipeline
 const CAMPAIGN_STAGES = { '5001': '1. Contacted', '5002': '2. Responded', '5003': '3. Call Scheduled', '5004': '4. Pitched', '5006': '5. Recycled' };
@@ -107,17 +117,21 @@ export function summarize(rows, { overrides = {}, meta = {}, now = Date.now(), g
       { id: 'proposal', label: 'Proposal sent or later', n: n(5) },
       { id: 'signed', label: 'Signed client', n: n(6) },
     ];
-    const perDay = Object.fromEntries(days.map((d) => [d, { day: d, reached: 0, replies: 0 }]));
+    const perDay = Object.fromEntries(days.map((d) => [d, { day: d, reached: 0, replies: 0, sent: 0 }]));
     for (const l of leads) {
       if (l.created && perDay[dayKey(l.created)]) perDay[dayKey(l.created)].reached++;
+      if (l.last_out && perDay[dayKey(l.last_out)]) perDay[dayKey(l.last_out)].sent++;
       if (l.real && l.last_in && perDay[dayKey(l.last_in)]) perDay[dayKey(l.last_in)].replies++;
     }
     const last7 = leads.filter((x) => x.created > now - 7 * DAY).length;
     const lastCreated = Math.max(0, ...leads.map((x) => x.created || 0));
     const countries = Object.entries(leads.reduce((o, x) => (x.country && (o[x.country] = (o[x.country] || 0) + 1), o), {})).map(([c, k]) => ({ country: c, n: k })).sort((a, b) => b.n - a.n);
+    const lastActivity = Math.max(0, ...leads.map((x) => Math.max(x.created || 0, x.last_out || 0, x.last_in || 0)));
+    const outcome = { no_reply: leads.filter((x) => !x.inbound && !x.real).length, to_check: leads.filter((x) => !x.real && x.inbound).length, replied: n(3) };
     const target = md.target != null && md.target !== '' ? +md.target : null;
     return {
-      code, description: md.description || 'Claude campaign', page: md.page || null, target,
+      code, name: md.name || '', description: md.description || 'Claude campaign',
+      last_activity: lastActivity || null, ...health(lastActivity, now), outcome, page: md.page || null, target,
       status: last7 ? 'active' : 'quiet', last_created: lastCreated || null, last7,
       reached: leads.length, replies: n(3), calls: n(4), signed: n(6),
       reply_rate: leads.length ? Math.round((1000 * n(3)) / leads.length) / 10 : null,
@@ -129,7 +143,7 @@ export function summarize(rows, { overrides = {}, meta = {}, now = Date.now(), g
   const allDays = days.map((d) => ({ day: d, reached: campaigns.reduce((s, c) => s + c.activity.find((a) => a.day === d).reached, 0) }));
   return {
     generated_at, daily_target: +(meta._target || 10),
-    totals: { campaigns: campaigns.length, active: campaigns.filter((c) => c.status === 'active').length, reached: campaigns.reduce((s, c) => s + c.reached, 0), replies: campaigns.reduce((s, c) => s + c.replies, 0), calls: campaigns.reduce((s, c) => s + c.calls, 0), signed: campaigns.reduce((s, c) => s + c.signed, 0), to_check: campaigns.reduce((s, c) => s + c.to_check, 0) },
+    totals: { campaigns: campaigns.length, active: campaigns.filter((c) => c.status === 'active').length, green: campaigns.filter((c) => c.health === 'green').length, orange: campaigns.filter((c) => c.health === 'orange').length, red: campaigns.filter((c) => c.health === 'red').length, reached: campaigns.reduce((s, c) => s + c.reached, 0), replies: campaigns.reduce((s, c) => s + c.replies, 0), calls: campaigns.reduce((s, c) => s + c.calls, 0), signed: campaigns.reduce((s, c) => s + c.signed, 0), to_check: campaigns.reduce((s, c) => s + c.to_check, 0) },
     activity: allDays, campaigns,
   };
 }
@@ -174,11 +188,11 @@ export async function campaignsApi(req, env, p, streak) {
     return { ok: true };
   }
   if (p === '/api/campaigns/meta' && req.method === 'POST') {
-    const { code, description, target } = await req.json();
+    const { code, name, description, target } = await req.json();
     if (!code || !(CODE_RE.test(code) || code === '_target')) throw new Error('bad campaign code');
     const m = await getJSON(env, 'campaign_meta', {});
     if (code === '_target') m._target = +target || 10;
-    else m[code.toUpperCase()] = { ...(m[code.toUpperCase()] || {}), ...(description != null ? { description: String(description).slice(0, 200) } : {}), ...(target !== undefined ? { target: target === '' || target == null ? null : +target } : {}) };
+    else m[code.toUpperCase()] = { ...(m[code.toUpperCase()] || {}), ...(name != null ? { name: String(name).slice(0, 60) } : {}), ...(description != null ? { description: String(description).slice(0, 200) } : {}), ...(target !== undefined ? { target: target === '' || target == null ? null : +target } : {}) };
     await putJSON(env, 'campaign_meta', m);
     return { ok: true };
   }
