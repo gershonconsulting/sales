@@ -6,7 +6,7 @@
 <title>Sales by Gershon.AI</title>
 <meta name="theme-color" content="#FE1B04">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FE1B04'/%3E%3Cpath d='M14 44l12-12 8 8 16-18' fill='none' stroke='%23fff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/unified-theme.css?v=1.4.2">
+<link rel="stylesheet" href="/unified-theme.css?v=1.5.0">
 <style>
 .hv-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
 .hv-k{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px}
@@ -26,6 +26,20 @@
 .tl pre{white-space:pre-wrap;font-family:inherit;margin:6px 0 0}
 .hv-pane input,.hv-pane textarea,.hv-pane select{width:100%;box-sizing:border-box}
 .bars{display:flex;align-items:flex-end;gap:4px;height:70px}.bars div{flex:1;background:#FE1B04;border-radius:3px 3px 0 0;min-height:2px}
+.bars.tall{height:120px;position:relative}.bars div.g{background:#16a34a}.bars div.o{background:#f59e0b}.bars div.r{background:#FE1B04}
+.tline{position:absolute;left:0;right:0;border-top:2px dashed #111827;opacity:.35;pointer-events:none}
+.dlab{display:flex;gap:4px;font-size:10px;color:#6b7280;margin-top:4px}.dlab span{flex:1;text-align:center}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle}.dot.green{background:#16a34a}.dot.orange{background:#f59e0b}.dot.red{background:#FE1B04}
+.st.green{background:#e7f6ec;color:#166534}.st.orange{background:#fff7ed;color:#c2410c}.st.red{background:#fff5f5;color:#d11200}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:#6b7280;margin-top:8px}.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.htile{background:#fff;border:1px solid #e5e7eb;border-left:6px solid #d1d5db;border-radius:12px;padding:10px 12px;cursor:pointer}
+.htile.green{border-left-color:#16a34a}.htile.orange{border-left-color:#f59e0b}.htile.red{border-left-color:#FE1B04}
+.htile b{display:block}.htile .nm{font-size:13px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.htile .nums{font-size:12px;color:#6b7280;margin-top:4px}
+.stack{display:flex;height:18px;border-radius:6px;overflow:hidden;background:#f1f1f3}.stack div{height:18px}
+.srow{display:grid;grid-template-columns:minmax(150px,240px) 1fr 70px;gap:10px;align-items:center;margin:7px 0;cursor:pointer}
+.heat{display:grid;gap:3px;align-items:center}.heat .c{height:18px;border-radius:3px;background:#f1f1f3}.heat .c.g{background:#16a34a}.heat .c.o{background:#f59e0b}.heat .c.r{background:#fecaca}
+.heat .lb{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:6px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -107,17 +121,21 @@
   <section id="t-camps" style="display:none">
     <div class="card"><div class="row"><b id="ccHead">Claude campaigns</b><span class="sp"></span><span class="muted" id="ccAt"></span><button class="b" id="ccRefresh">Refresh</button></div><div class="muted" id="ccWarn"></div></div>
     <div class="hv-kpis" id="ccKpis"></div>
-    <div class="card"><div class="row"><b>New companies reached per day — all campaigns</b><span class="sp"></span><span class="muted" id="ccTarget"></span></div><div class="bars" id="ccBars"></div></div>
+    <div class="card"><div class="row"><b>Campaign health</b><span class="sp"></span><span class="legend" style="margin:0"><span><span class="dot green"></span> activity in the last 3 days</span><span><span class="dot orange"></span> more than 3 days</span><span><span class="dot red"></span> more than 6 days</span></span></div><div class="hgrid" id="ccHealth" style="margin-top:10px"></div></div>
+    <div class="card"><div class="row"><b>New companies reached per day — all campaigns</b><span class="sp"></span><span class="muted" id="ccTarget"></span></div><div class="bars tall" id="ccBars"></div><div class="dlab" id="ccDays"></div><div class="legend"><span><i style="background:#16a34a"></i>target met</span><span><i style="background:#f59e0b"></i>at least half the target</span><span><i style="background:#FE1B04"></i>under half</span><span><i style="border-top:2px dashed #111827;height:0;opacity:.5"></i>target</span></div></div>
+    <div class="card"><b>Results by campaign</b><div id="ccStack" style="margin-top:8px"></div><div class="legend"><span><i style="background:#16a34a"></i>real reply or further</span><span><i style="background:#f59e0b"></i>email back, to check</span><span><i style="background:#FE1B04"></i>no reply yet</span></div></div>
+    <div class="card"><b>Activity — last 14 days</b><div class="muted" style="font-size:12px">New companies or emails sent, per campaign and day</div><div class="heat" id="ccHeat" style="margin-top:8px"></div><div class="legend"><span><i style="background:#16a34a"></i>daily target met</span><span><i style="background:#f59e0b"></i>some activity</span><span><i style="background:#fecaca"></i>nothing</span></div></div>
     <div class="card wrap"><table id="ccTable"></table></div>
     <div class="muted" style="margin:4px 2px 16px">Source: Streak Origin field (GC Campaigns, GC Pipeline, GC Clients). A company that moved from GC Campaigns to a deal or a client is counted once, at its furthest step. "Real reply" = an email came back and the lead was moved on (Responded, a deal, a call) — or you marked it by hand. An email back on a lead still in "Contacted" waits in "To check" (usually out-of-office or bounce).</div>
   </section>
   <section id="t-camp" style="display:none">
-    <div class="card"><div class="row"><button class="b" onclick="show('camps')">← All campaigns</button><b id="c1Title" style="font-size:18px"></b><span class="st" id="c1Status"></span><span class="sp"></span><span id="c1Links"></span></div>
-      <div class="row" style="margin-top:8px"><input id="c1Desc" placeholder="What this campaign is" style="flex:1"><input id="c1Target" type="number" min="0" placeholder="Target/day" style="width:110px"><button class="b" id="c1Save">Save</button><span class="muted" id="c1Msg"></span></div>
+    <div class="card"><div class="row"><button class="b" onclick="show('camps')">← All campaigns</button><span class="dot" id="c1Dot"></span><b id="c1Title" style="font-size:18px"></b><span class="st" id="c1Status"></span><span class="sp"></span><span id="c1Links"></span></div>
+      <div class="row" style="margin-top:8px"><input id="c1Name" placeholder="Campaign name" style="width:200px"><input id="c1Desc" placeholder="What this campaign is" style="flex:1"><input id="c1Target" type="number" min="0" placeholder="Target/day" style="width:110px"><button class="b" id="c1Save">Save</button><span class="muted" id="c1Msg"></span></div>
       <div class="muted" id="c1Warn" style="margin-top:6px"></div></div>
     <div class="hv-kpis" id="c1Kpis"></div>
     <div class="card"><b>Funnel</b><div id="c1Steps" style="margin-top:8px"></div></div>
-    <div class="card"><div class="row"><b>Last 14 days</b><span class="sp"></span><span class="muted" id="c1Tgt"></span></div><div class="bars" id="c1Bars"></div><div class="muted" id="c1Ctry" style="margin-top:8px"></div></div>
+    <div class="card"><b>Where the companies are</b><div class="stack" id="c1Stack" style="margin-top:10px;height:26px"></div><div class="legend" id="c1Leg"></div></div>
+    <div class="card"><div class="row"><b>Last 14 days</b><span class="sp"></span><span class="muted" id="c1Tgt"></span></div><div class="bars tall" id="c1Bars"></div><div class="dlab" id="c1Days"></div><div class="legend"><span><i style="background:#16a34a"></i>target met</span><span><i style="background:#f59e0b"></i>at least half</span><span><i style="background:#FE1B04"></i>under half</span></div><div class="muted" id="c1Ctry" style="margin-top:8px"></div></div>
     <div class="card"><div class="row"><div class="chips" id="c1Chips"></div><span class="sp"></span><input id="c1Q" placeholder="Search company or country" style="max-width:240px"></div></div>
     <div class="card wrap"><table id="c1Leads"></table></div>
   </section>
@@ -142,7 +160,7 @@
 </div>
 </div>
 <script>
-const APP_VERSION='v1.4.2';
+const APP_VERSION='v1.5.0';
 const $=s=>document.querySelector(s);
 document.querySelectorAll('.appver').forEach(e=>e.textContent=APP_VERSION);
 const TITLES={overview:'Overview',camps:'Campaigns',camp:'Campaign',harvey:'Harvey — Campaign H01',chat:'Chat',due:'Due follow-ups',drafts:'Drafts',funnel:'Funnel',pipe:'Pipeline',settings:'Settings'};
@@ -313,6 +331,11 @@ async function hvAi(pid){$('#hvAiBtn').textContent='Writing…';try{const d=awai
 
 /* ---------- Claude campaigns (CC01, CC02, …) ---------- */
 let CC=null,c1Filter='all';
+const CN=c=>c.code+(c.name?' · '+c.name:'');
+const IDLE=c=>c.idle_days==null?'no activity':c.idle_days===0?'active today':c.idle_days===1?'active yesterday':c.idle_days+' days without activity';
+const BC=(v,t)=>v>=t?'g':v>=t/2&&v>0?'o':'r';
+function barsHTML(A,key,t){const mx=Math.max(1,t,...A.map(a=>a[key]));return A.map(a=>`<div class="${BC(a[key],t)}" style="height:${Math.max(2,100*a[key]/mx)}%" title="${a.day}: ${a[key]}"></div>`).join('')+`<span class="tline" style="bottom:${100*t/mx}%"></span>`}
+const dayLabels=A=>A.map(a=>`<span>${+a.day.slice(8)}</span>`).join('');
 const LV=['','Reached','Email back','Replied','Call / meeting','Proposal','Signed'];
 const SB='https://www.streak.com/a/boxes/';
 async function loadCamps(refresh,quiet,single){
@@ -320,34 +343,43 @@ async function loadCamps(refresh,quiet,single){
     try{CC=await api('/api/campaigns'+(refresh?'?refresh=1':''))}catch(e){if(!quiet){$('#ccAt').textContent='';$('#ccWarn').textContent=e.message;$('#c1Warn').textContent=e.message}return}}
   const T=CC.totals;
   $('#ccBadge').textContent=T.to_check;$('#ccBadge').hidden=!T.to_check;$('#ccBadge').title='Emails back to check';
-  $('#campNav').innerHTML=CC.campaigns.map(c=>`<button data-t="camp-${c.code}" class="${location.hash==='#camp-'+c.code?'on':''}" title="${esc(c.description)}"><span style="width:8px;height:8px;border-radius:50%;margin:0 8px 0 4px;background:${c.status==='active'?'#16a34a':'#d1d5db'}"></span>${esc(c.code)}${c.to_check?`<span class="cnt">${c.to_check}</span>`:''}</button>`).join('');
+  $('#campNav').innerHTML=CC.campaigns.map(c=>`<button data-t="camp-${c.code}" class="${location.hash==='#camp-'+c.code?'on':''}" title="${esc(CN(c)+' — '+IDLE(c))}"><span class="dot ${c.health}" style="width:8px;height:8px;margin:0 8px 0 4px;flex:none"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(CN(c))}</span>${c.to_check?`<span class="cnt">${c.to_check}</span>`:''}</button>`).join('');
   $('#campNav').querySelectorAll('button').forEach(b=>b.onclick=()=>show(b.dataset.t));
   $('#ccAt').textContent='Updated '+new Date(CC.generated_at).toLocaleString();
   const w=[];if(CC.error)w.push('Last refresh failed: '+CC.error);if(CC.missing&&CC.missing.length)w.push('Could not read: '+CC.missing.join(', '));$('#ccWarn').textContent=w.join(' · ');
-  $('#ccHead').textContent=`${T.campaigns} campaigns · ${T.active} active this week`;
+  $('#ccHead').innerHTML=`${T.campaigns} campaigns · <span class="dot green"></span> ${T.green} · <span class="dot orange"></span> ${T.orange} · <span class="dot red"></span> ${T.red}`;
+  $('#ccHealth').innerHTML=CC.campaigns.map(c=>`<div class="htile ${c.health}" onclick="show('camp-${c.code}')"><b>${esc(c.code)} <span class="st ${c.health}" style="float:right">${esc(IDLE(c))}</span></b><div class="nm">${esc(c.name||c.description)}</div><div class="nums">${fmt(c.reached)} reached · ${c.last7} this week · ${c.replies} replies · ${c.calls} calls</div></div>`).join('');
+  const smx=Math.max(1,...CC.campaigns.map(c=>c.reached));
+  $('#ccStack').innerHTML=CC.campaigns.map(c=>{const o=c.outcome,w=v=>100*v/smx;return `<div class="srow" onclick="show('camp-${c.code}')"><span><span class="dot ${c.health}"></span> <b>${esc(c.code)}</b> <span class="muted">${esc(c.name)}</span></span><div class="stack" style="background:transparent"><div style="width:${w(o.replied)}%;background:#16a34a" title="${o.replied} real replies or further"></div><div style="width:${w(o.to_check)}%;background:#f59e0b" title="${o.to_check} emails back to check"></div><div style="width:${w(o.no_reply)}%;background:#FE1B04" title="${o.no_reply} no reply yet"></div></div><b style="text-align:right">${fmt(c.reached)}</b></div>`}).join('');
+  const days=CC.activity.map(a=>a.day);
+  $('#ccHeat').style.gridTemplateColumns=`minmax(120px,220px) repeat(${days.length},1fr)`;
+  $('#ccHeat').innerHTML='<span></span>'+days.map(d=>`<span class="muted" style="font-size:10px;text-align:center">${+d.slice(8)}</span>`).join('')+CC.campaigns.map(c=>{const t=c.target||CC.daily_target;return `<span class="lb" onclick="show('camp-${c.code}')"><span class="dot ${c.health}"></span> ${esc(CN(c))}</span>`+c.activity.map(a=>`<span class="c ${a.reached>=t?'g':a.reached||a.sent?'o':'r'}" title="${esc(c.code)} ${a.day}: ${a.reached} new, ${a.sent} emails sent"></span>`).join('')}).join('');
   const K=(n,l,hot)=>`<div class="hv-k${hot&&n?' hot':''}"><b>${fmt(n)}</b><span>${l}</span></div>`;
   $('#ccKpis').innerHTML=K(T.reached,'Companies reached')+K(T.replies,'Real replies')+K(T.calls,'Calls / meetings')+K(T.signed,'Signed clients')+K(T.to_check,'Emails back to check',1);
-  const A=CC.activity,mx=Math.max(CC.daily_target,...A.map(a=>a.reached));
-  $('#ccBars').innerHTML=A.map(a=>`<div style="height:${100*a.reached/mx}%;${a.reached>=CC.daily_target?'':'opacity:.45'}" title="${a.day}: ${a.reached}"></div>`).join('');
+  const A=CC.activity;
+  $('#ccBars').innerHTML=barsHTML(A,'reached',CC.daily_target);$('#ccDays').innerHTML=dayLabels(A);
   $('#ccTarget').textContent=`Target ${CC.daily_target}/day — met ${A.filter(a=>a.reached>=CC.daily_target).length} of 14 days · ${A.slice(-7).reduce((s,a)=>s+a.reached,0)} this week`;
-  $('#ccTable').innerHTML='<tr><th>Campaign</th><th>Reached</th><th class="hide-sm">Last 7d</th><th>Replies</th><th class="hide-sm">Reply rate</th><th>Calls</th><th class="hide-sm">Signed</th><th class="hide-sm">To check</th><th></th></tr>'+CC.campaigns.map(c=>`<tr class="lead" style="cursor:pointer" onclick="show('camp-${c.code}')"><td><b>${esc(c.code)}</b> <span class="st ${c.status==='active'?'Interested':''}">${c.status==='active'?'active':'quiet'}</span><div class="muted">${esc(c.description)}</div></td><td>${c.reached}</td><td class="hide-sm">${c.last7}</td><td><b>${c.replies}</b></td><td class="hide-sm">${c.reply_rate==null?'—':c.reply_rate+'%'}</td><td><b>${c.calls}</b></td><td class="hide-sm">${c.signed}</td><td class="hide-sm">${c.to_check?'<span class="flag">'+c.to_check+'</span>':''}</td><td><button class="b">Open</button></td></tr>`).join('');
+  $('#ccTable').innerHTML='<tr><th>Campaign</th><th>Reached</th><th class="hide-sm">Last 7d</th><th>Replies</th><th class="hide-sm">Reply rate</th><th>Calls</th><th class="hide-sm">Signed</th><th class="hide-sm">To check</th><th></th></tr>'+CC.campaigns.map(c=>`<tr class="lead" style="cursor:pointer" onclick="show('camp-${c.code}')"><td><span class="dot ${c.health}"></span> <b>${esc(CN(c))}</b> <span class="st ${c.health}">${esc(IDLE(c))}</span><div class="muted">${esc(c.description)}</div></td><td>${c.reached}</td><td class="hide-sm">${c.last7}</td><td><b>${c.replies}</b></td><td class="hide-sm"><span class="st ${c.reply_rate==null?'':c.reply_rate>=5?'green':c.reply_rate>=1?'orange':'red'}">${c.reply_rate==null?'—':c.reply_rate+'%'}</span></td><td><b>${c.calls}</b></td><td class="hide-sm">${c.signed}</td><td class="hide-sm">${c.to_check?'<span class="flag">'+c.to_check+'</span>':''}</td><td><button class="b">Open</button></td></tr>`).join('');
   if(single)renderCamp();
 }
 function renderCamp(){
   const c=CC&&CC.campaigns.find(x=>x.code===CUR);
   if(!c){$('#c1Title').textContent=CUR;$('#c1Warn').textContent=CC?'No lead with Origin '+CUR+' in Streak.':'';return}
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==='camp-'+c.code));
-  $('#c1Title').textContent=c.code;$('#c1Status').textContent=c.status==='active'?'active':'quiet';$('#c1Status').className='st '+(c.status==='active'?'Interested':'');
+  $('#c1Title').textContent=CN(c);$('#pageTitle').textContent='Campaign '+CN(c);$('#c1Dot').className='dot '+c.health;$('#c1Status').textContent=IDLE(c);$('#c1Status').className='st '+c.health;
   $('#c1Links').innerHTML=c.page?`<button class="b" onclick="show('${c.page}')">Open ${esc(c.code)} workspace →</button>`:'';
-  $('#c1Desc').value=c.description;$('#c1Target').value=c.target??'';$('#c1Msg').textContent='';
+  $('#c1Name').value=c.name||'';$('#c1Desc').value=c.description;$('#c1Target').value=c.target??'';$('#c1Msg').textContent='';
   const w=[];if(c.false_responded)w.push(`${c.false_responded} lead(s) sit in "2. Responded" in Streak with no email back — not counted as replies.`);if(c.to_check)w.push(`${c.to_check} email(s) came back on leads still in "Contacted": mark each one below as a real reply or an auto-reply.`);
   $('#c1Warn').textContent=w.join(' ');
   const K=(n,l,hot,f)=>`<div class="hv-k${hot&&n?' hot':''}" ${f?`style="cursor:pointer" onclick="c1Set('${f}')"`:''}><b>${n==null?'—':fmt(n)}</b><span>${l}</span></div>`;
   $('#c1Kpis').innerHTML=K(c.reached,'Companies reached',0,'all')+K(c.last7,'Reached last 7 days')+K(c.replies,'Real replies',0,'replied')+(`<div class="hv-k"><b>${c.reply_rate==null?'—':c.reply_rate+'%'}</b><span>Reply rate</span></div>`)+K(c.calls,'Calls / meetings',0,'call')+K(c.signed,'Signed clients')+K(c.to_check,'To check',1,'check')+K(c.by_pipe.pipeline+c.by_pipe.clients,'Now in GC Pipeline / Clients');
   const top=Math.max(1,c.steps[0].n);
-  $('#c1Steps').innerHTML=c.steps.map((s,i)=>{const prev=i?c.steps[i-1].n:0;const conv=i&&prev?Math.round(1000*s.n/prev)/10+'% of previous':'';return `<div style="display:grid;grid-template-columns:minmax(130px,200px) 1fr 60px 120px;gap:10px;align-items:center;margin:6px 0"><span>${esc(s.label)}</span><div style="background:#f1f1f3;border-radius:6px;height:18px"><div style="width:${Math.max(.6,100*s.n/top)}%;height:18px;border-radius:6px;background:#FE1B04"></div></div><b style="text-align:right">${fmt(s.n)}</b><span class="muted" style="text-align:right">${conv}</span></div>`}).join('');
+  $('#c1Steps').innerHTML=c.steps.map((s,i)=>{const prev=i?c.steps[i-1].n:0;const conv=i&&prev?Math.round(1000*s.n/prev)/10+'% of previous':'';return `<div style="display:grid;grid-template-columns:minmax(130px,200px) 1fr 60px 120px;gap:10px;align-items:center;margin:6px 0"><span>${esc(s.label)}</span><div style="background:#f1f1f3;border-radius:6px;height:18px"><div style="width:${Math.max(.6,100*s.n/top)}%;height:18px;border-radius:6px;background:${i>=2?'#16a34a':'#f59e0b'}"></div></div><b style="text-align:right">${fmt(s.n)}</b><span class="muted" style="text-align:right">${conv}</span></div>`}).join('');
   const A=c.activity,mx=Math.max(1,c.target||0,...A.map(a=>a.reached));
-  $('#c1Bars').innerHTML=A.map(a=>`<div style="height:${100*a.reached/mx}%" title="${a.day}: ${a.reached} reached, ${a.replies} replies"></div>`).join('');
+  const tg=c.target||CC.daily_target;$('#c1Bars').innerHTML=barsHTML(A,'reached',tg);$('#c1Days').innerHTML=dayLabels(A);
+  const o=c.outcome,tot=Math.max(1,c.reached),pc=v=>Math.round(100*v/tot);
+  $('#c1Stack').innerHTML=`<div style="width:${100*o.replied/tot}%;background:#16a34a;height:26px" title="${o.replied}"></div><div style="width:${100*o.to_check/tot}%;background:#f59e0b;height:26px" title="${o.to_check}"></div><div style="width:${100*o.no_reply/tot}%;background:#FE1B04;height:26px" title="${o.no_reply}"></div>`;
+  $('#c1Leg').innerHTML=`<span><i style="background:#16a34a"></i>${o.replied} real reply or further (${pc(o.replied)}%)</span><span><i style="background:#f59e0b"></i>${o.to_check} email back, to check (${pc(o.to_check)}%)</span><span><i style="background:#FE1B04"></i>${o.no_reply} no reply yet (${pc(o.no_reply)}%)</span>`;
   $('#c1Tgt').textContent=(c.target?`Target ${c.target}/day — met ${A.filter(a=>a.reached>=c.target).length} of 14 days · `:'')+`${A.reduce((s,a)=>s+a.reached,0)} reached in 14 days`+(c.last_created?' · last new lead '+ago(c.last_created):'');
   $('#c1Ctry').textContent=c.countries.length?'By country: '+c.countries.slice(0,10).map(x=>x.country+' '+x.n).join(' · '):'';
   const F=[['all','All'],['check','To check'],['replied','Real replies'],['call','Calls+'],['noreply','No reply yet'],['false','False "Responded"']];
@@ -360,7 +392,7 @@ function c1Match(x,k){switch(k){case'check':return x.toCheck;case'replied':retur
 function c1Set(k){c1Filter=k;renderCamp()}
 async function c1Mark(key,value){try{await api('/api/campaigns/override',{key,value});CC=null;await loadCamps(false,true,true)}catch(e){alert(e.message)}}
 $('#c1Q').oninput=()=>renderCamp();
-$('#c1Save').onclick=async()=>{try{await api('/api/campaigns/meta',{code:CUR,description:$('#c1Desc').value,target:$('#c1Target').value});$('#c1Msg').textContent='Saved';CC=null;await loadCamps(false,true,true)}catch(e){$('#c1Msg').textContent=e.message}};
+$('#c1Save').onclick=async()=>{try{await api('/api/campaigns/meta',{code:CUR,name:$('#c1Name').value,description:$('#c1Desc').value,target:$('#c1Target').value});$('#c1Msg').textContent='Saved';CC=null;await loadCamps(false,true,true)}catch(e){$('#c1Msg').textContent=e.message}};
 $('#ccRefresh').onclick=()=>loadCamps(true);
 /* ---------- Settings ---------- */
 function renderSettings(s){

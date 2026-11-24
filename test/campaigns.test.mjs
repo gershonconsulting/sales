@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { extractLeads, summarize, classify } from '../src/claude-campaigns.js';
+import { extractLeads, summarize, classify, health } from '../src/claude-campaigns.js';
 
 const now = Date.parse('2026-11-20T12:00:00Z');
 const D = 86400000;
@@ -48,4 +48,12 @@ for (const c of s.campaigns) for (let i = 1; i < c.steps.length; i++) assert.ok(
 // 'auto' override hides an out-of-office from to-check
 assert.equal(classify({ pipe: 'campaigns', stage: '5001', last_in: 1 }, 'auto').toCheck, false);
 assert.equal(classify({ pipe: 'campaigns', stage: '5001', last_in: 1 }, 'auto').real, false);
+assert.equal(cc01.name, 'E2 New Companies', 'real name after the code');
+assert.equal(cc01.health, 'green', 'activity yesterday = green');
+assert.equal(cc01.outcome.no_reply + cc01.outcome.to_check + cc01.outcome.replied, cc01.reached, 'outcome split adds up');
+assert.equal(health(now - 3 * D, now).health, 'green');
+assert.equal(health(now - 4 * D, now).health, 'orange', 'more than 3 days = orange');
+assert.equal(health(now - 6 * D, now).health, 'orange');
+assert.equal(health(now - 7 * D, now).health, 'red', 'more than 6 days = red');
+assert.equal(health(0, now).health, 'red');
 console.log('campaigns.test: ok');
