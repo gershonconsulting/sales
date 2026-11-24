@@ -6,7 +6,7 @@
 <title>Sales by Gershon.AI</title>
 <meta name="theme-color" content="#FE1B04">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FE1B04'/%3E%3Cpath d='M14 44l12-12 8 8 16-18' fill='none' stroke='%23fff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/unified-theme.css?v=1.5.1">
+<link rel="stylesheet" href="/unified-theme.css?v=1.5.2">
 <style>
 .hv-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
 .hv-k{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px}
@@ -111,7 +111,7 @@
     <div class="card"><div id="log"><div class="msg muted">Ask about the pipeline: “Who should I follow up this week?”, “Where are we with TEPCOMP?”, “Which proposals have been silent for 60+ days?”</div></div></div>
     <div class="row"><textarea id="q" rows="2" placeholder="Message…" style="flex:1"></textarea><button class="b p" id="send">Send</button></div>
   </section>
-  <section id="t-due" style="display:none"><div class="card"><div class="row"><b id="dueCount"></b><span class="sp"></span><button class="b p" id="weeklyBtn">Draft all due</button></div></div><div class="card wrap"><table id="dueT"></table></div></section>
+  <section id="t-due" style="display:none"><div class="card"><div class="row"><b id="dueCount"></b><span class="sp"></span><button class="b p" id="weeklyBtn">Draft emails for all</button></div><p class="muted" style="margin:8px 0 0">These GC Pipeline deals have had no email for too long (7 days for Scheduled, Negotiating and Closing; 14 days for Lead, Contacted, Pitched and Proposal Sent; 30 days for Nurturing). <b>Nothing is sent from this page.</b> Click a button to have a follow-up written, then go to <a href="#drafts" onclick="show('drafts');return false">Drafts</a> to approve, edit or reject it. Approved emails go out from your Gmail; LinkedIn drafts are copied and sent by hand. Every Monday morning the drafts are prepared automatically.</p></div><div class="card wrap"><table id="dueT"></table></div></section>
   <section id="t-drafts" style="display:none"><div id="draftList"></div></section>
   <section id="t-funnel" style="display:none">
     <div class="card"><div class="row"><b id="fcHead">Full cycle</b><span class="sp"></span><span class="muted" id="fcAt"></span><button class="b" id="fcRefresh">Refresh</button></div><div class="muted" id="fcWarn"></div></div>
@@ -170,7 +170,7 @@
 </div>
 </div>
 <script>
-const APP_VERSION='v1.5.1';
+const APP_VERSION='v1.5.2';
 const $=s=>document.querySelector(s);
 document.querySelectorAll('.appver').forEach(e=>e.textContent=APP_VERSION);
 const TITLES={overview:'Overview',camps:'Campaigns',camp:'Campaign',harvey:'Harvey — Campaign H01',chat:'Chat',due:'Due follow-ups',drafts:'Drafts',funnel:'Funnel',pipe:'Pipeline',settings:'Settings'};
@@ -199,10 +199,10 @@ async function boot(){
 async function loadPipe(){
   try{deals=await api('/api/pipeline')}catch(e){deals=[]}
   const due=deals.filter(d=>d.due);
-  $('#dueCount').textContent=due.length+' deals due for a follow-up';
+  $('#dueCount').textContent=due.length+' deals need a follow-up';
   $('#dueBadge').textContent=due.length;$('#dueBadge').hidden=!due.length;
   const head='<tr><th>Deal</th><th>Stage</th><th class="hide-sm">Owner</th><th>Silent</th><th></th></tr>';
-  const row=d=>`<tr><td><b>${esc(d.name)}</b><div class="muted">${esc((d.notes||'').slice(0,140))}</div></td><td><span class="tag">${esc(d.stage_name)}</span></td><td class="hide-sm">${esc(d.owner||'—')}</td><td class="${d.due?'due':''}">${d.days_silent??'?'}d</td><td><div class="row"><button class="b" onclick="draft('${d.key}','email')">Email</button><button class="b" onclick="draft('${d.key}','linkedin')">LinkedIn</button></div></td></tr>`;
+  const row=d=>`<tr><td><b>${esc(d.name)}</b><div class="muted">${esc((d.notes||'').slice(0,140))}</div></td><td><span class="tag">${esc(d.stage_name)}</span></td><td class="hide-sm">${esc(d.owner||'—')}</td><td class="${d.due?'due':''}">${d.days_silent??'?'}d</td><td><div class="row"><button class="b" onclick="draft('${d.key}','email')">Draft email</button><button class="b" onclick="draft('${d.key}','linkedin')">Draft LinkedIn</button></div></td></tr>`;
   $('#dueT').innerHTML=head+due.map(row).join('');
   $('#pipeT').innerHTML=head+deals.map(row).join('');
 }
@@ -218,7 +218,7 @@ function show(t){let sec=t;if(/^camp-/.test(t)){sec='camp';CUR=t.slice(5)}$('#pa
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.t));
 let CUR=null;
 $('#syncBtn').onclick=async()=>{$('#syncBtn').textContent='Syncing…';try{const r=await api('/api/sync',{});$('#status').textContent=r.synced+' deals synced';await loadPipe()}catch(e){alert(e.message)}$('#syncBtn').textContent='Sync Streak'};
-$('#weeklyBtn').onclick=async()=>{$('#weeklyBtn').textContent='Drafting…';try{const r=await api('/api/weekly',{});alert(r.drafts+' drafts created');show('drafts')}catch(e){alert(e.message)}$('#weeklyBtn').textContent='Draft all due'};
+$('#weeklyBtn').onclick=async()=>{$('#weeklyBtn').textContent='Drafting…';try{const r=await api('/api/weekly',{});alert(r.drafts+' drafts created');show('drafts')}catch(e){alert(e.message)}$('#weeklyBtn').textContent='Draft emails for all'};
 function addMsg(role,text){const el=document.createElement('div');el.className='msg '+(role==='user'?'u':'');let h=esc(text);h=h.replace(/^DRAFT:\s*(.+?)\s*\|\s*(email|linkedin)\s*$/gmi,(m,n,ch)=>{const d=deals.find(x=>x.name.trim().toLowerCase()===n.trim().toLowerCase());return d?`<button class="b" onclick="draft('${d.key}','${ch.toLowerCase()}')">✍️ Draft ${ch} for ${esc(d.name)}</button>`:m});el.innerHTML=h;$('#log').appendChild(el);$('#log').scrollTop=1e9}
 $('#send').onclick=async()=>{const q=$('#q').value.trim();if(!q)return;$('#q').value='';addMsg('user',q);try{const r=await api('/api/chat',{message:q,history:hist});hist.push({role:'user',content:q},{role:'assistant',content:r.reply});addMsg('assistant',r.reply)}catch(e){addMsg('assistant','Error: '+e.message)}};
 $('#q').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#send').click()}};
