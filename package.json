@@ -2,6 +2,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node test/version.test.mjs && node test/funnel.test.mjs && node --no-warnings test/harvey.test.mjs && node test/overview.test.mjs && node test/campaigns.test.mjs && node --no-warnings test/settings.test.mjs"
+    "test": "node test/version.test.mjs && node test/funnel.test.mjs && node --no-warnings test/harvey.test.mjs && node test/overview.test.mjs && node test/campaigns.test.mjs && node --no-warnings test/settings.test.mjs && node --no-warnings test/botdog.test.mjs"
   }
 }

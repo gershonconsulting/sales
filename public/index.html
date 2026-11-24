@@ -6,7 +6,7 @@
 <title>Sales by Gershon.AI</title>
 <meta name="theme-color" content="#FE1B04">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FE1B04'/%3E%3Cpath d='M14 44l12-12 8 8 16-18' fill='none' stroke='%23fff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/unified-theme.css?v=1.5.0">
+<link rel="stylesheet" href="/unified-theme.css?v=1.6.0">
 <style>
 .hv-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
 .hv-k{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px}
@@ -149,6 +149,15 @@
       <div class="row" style="margin-top:10px"><span class="muted" id="stMsg"></span><span class="sp"></span><button class="b" id="stSync">Sync now</button><button class="b" id="stRemove" hidden>Remove key</button></div>
     </div>
     <div class="card">
+      <div class="row"><b>Botdog</b><span class="sp"></span><span class="tag" id="bdState">…</span></div>
+      <div class="muted" id="bdInfo" style="margin-top:6px"></div>
+      <label for="bdKey" style="display:block;margin-top:12px">Botdog API key</label>
+      <div class="row"><input id="bdKey" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your Botdog API key (bd_live_…)" style="flex:1"><button class="b p" id="bdSave">Save &amp; sync</button></div>
+      <div class="muted" style="margin-top:6px">In Botdog: <b>Settings</b> → <b>Integrations</b> → <b>API</b> → create a key. It is checked with Botdog before it is saved, then every campaign's status is pulled right away and every morning. The key is never shown again here.</div>
+      <div class="row" style="margin-top:10px"><span class="muted" id="bdMsg"></span><span class="sp"></span><button class="b" id="bdSync">Sync now</button><button class="b" id="bdRemove" hidden>Remove key</button></div>
+      <div class="wrap" style="margin-top:10px"><table id="bdT"></table></div>
+    </div>
+    <div class="card">
       <div class="row"><b>Gmail</b><span class="sp"></span><span class="tag" id="gmState">…</span></div>
       <div class="muted" id="gmInfo" style="margin-top:6px"></div>
       <div class="row" style="margin-top:10px"><a class="b" href="/oauth/google/start" id="gmBtn">Connect Gmail</a></div>
@@ -160,7 +169,7 @@
 </div>
 </div>
 <script>
-const APP_VERSION='v1.5.0';
+const APP_VERSION='v1.6.0';
 const $=s=>document.querySelector(s);
 document.querySelectorAll('.appver').forEach(e=>e.textContent=APP_VERSION);
 const TITLES={overview:'Overview',camps:'Campaigns',camp:'Campaign',harvey:'Harvey — Campaign H01',chat:'Chat',due:'Due follow-ups',drafts:'Drafts',funnel:'Funnel',pipe:'Pipeline',settings:'Settings'};
@@ -407,7 +416,30 @@ function renderSettings(s){
   $('#gmState').style.cssText=s.gmail.connected?'background:#e7f6ec;color:#166534':'';
   $('#gmInfo').textContent=s.gmail.connected?('Sending approved emails as '+(s.gmail.account||'your Gmail account')+'.'):'Connect Gmail so approved drafts can be sent.';
   $('#gmBtn').textContent=s.gmail.connected?'Reconnect Gmail':'Connect Gmail';
+  if(s.botdog)renderBotdog(s.botdog);
 }
+function renderBotdog(b){
+  const when=t=>t?new Date(t).toLocaleString():'never',st=b.status;
+  $('#bdState').textContent=b.connected?'Connected':'Not connected';
+  $('#bdState').style.cssText=b.connected?'background:#e7f6ec;color:#166534':'background:#fff5f5;color:#d11200';
+  $('#bdRemove').hidden=!b.connected;$('#bdSync').disabled=!b.connected;
+  const t=st&&st.totals;
+  $('#bdInfo').innerHTML=(b.connected?`Key ${esc(b.hint)} saved${b.saved_at?' on '+when(b.saved_at):''}.`:'No Botdog key yet — paste it below to track every Botdog campaign.')+
+    `<br>Last update: ${when(st&&st.at)}`+(t?` · ${t.active} active of ${t.campaigns} campaigns · ${fmt(t.leads)} leads · ${fmt(t.invited)} invited · ${fmt(t.accepted)} accepted${t.accept_rate!=null?' ('+t.accept_rate+'%)':''} · ${fmt(t.replied)} replies`:'')+
+    (t&&t.stuck_leads?`<br><b style="color:#d11200">${fmt(t.stuck_leads)} leads are waiting in campaigns that were never started.</b>`:'')+
+    (b.last_error?`<br><span style="color:#d11200">Last sync failed: ${esc(b.last_error)}</span>`:'');
+  const rows=(st&&st.campaigns)||[];
+  $('#bdT').innerHTML=rows.length?'<tr><th>Campaign</th><th>Status</th><th>Leads</th><th>Invited</th><th>Accepted</th><th>Replies</th></tr>'+rows.map(r=>`<tr${r.stuck?' style="background:#fff5f5"':''}><td>${esc(r.name)}${r.stuck?' <b style="color:#d11200">· never started</b>':''}</td><td>${esc(r.status)}</td><td>${fmt(r.leads)}</td><td>${fmt(r.invited)}</td><td>${fmt(r.accepted)}${r.accept_rate!=null?' <span class="muted">'+r.accept_rate+'%</span>':''}</td><td>${fmt(r.replied)}</td></tr>`).join(''):'';
+}
+$('#bdSave').onclick=async()=>{
+  const key=$('#bdKey').value.trim();if(!key){$('#bdMsg').textContent='Paste your Botdog API key first.';return}
+  $('#bdSave').disabled=true;$('#bdMsg').textContent='Checking the key with Botdog…';
+  try{const r=await api('/api/settings/botdog',{key});$('#bdKey').value='';renderBotdog(r.botdog);$('#bdMsg').textContent=r.sync_error?'Key saved ✓, but the sync failed: '+r.sync_error:'Saved ✓ — campaigns pulled from Botdog.'}catch(e){$('#bdMsg').textContent=e.message}
+  $('#bdSave').disabled=false;
+};
+$('#bdKey').onkeydown=e=>{if(e.key==='Enter')$('#bdSave').click()};
+$('#bdSync').onclick=async()=>{$('#bdMsg').textContent='Syncing…';try{const r=await api('/api/botdog/sync',{});renderBotdog(r.botdog);$('#bdMsg').textContent='Updated ✓'}catch(e){$('#bdMsg').textContent=e.message}};
+$('#bdRemove').onclick=async()=>{if(!confirm('Remove the Botdog key saved here? Daily Botdog updates stop.'))return;try{const r=await api('/api/settings/botdog/remove',{});renderBotdog(r.botdog);$('#bdMsg').textContent='Key removed.'}catch(e){$('#bdMsg').textContent=e.message}};
 async function loadSettings(){try{renderSettings(await api('/api/settings'))}catch(e){$('#stInfo').textContent=e.message}}
 $('#stSave').onclick=async()=>{
   const key=$('#stKey').value.trim();if(!key){$('#stMsg').textContent='Paste your Streak API key first.';return}
