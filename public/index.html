@@ -6,7 +6,7 @@
 <title>Sales by Gershon.AI</title>
 <meta name="theme-color" content="#FE1B04">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FE1B04'/%3E%3Cpath d='M14 44l12-12 8 8 16-18' fill='none' stroke='%23fff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/unified-theme.css?v=1.5.0">
+<link rel="stylesheet" href="/unified-theme.css?v=1.5.1">
 <style>
 .hv-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
 .hv-k{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px}
@@ -40,6 +40,12 @@
 .srow{display:grid;grid-template-columns:minmax(150px,240px) 1fr 70px;gap:10px;align-items:center;margin:7px 0;cursor:pointer}
 .heat{display:grid;gap:3px;align-items:center}.heat .c{height:18px;border-radius:3px;background:#f1f1f3}.heat .c.g{background:#16a34a}.heat .c.o{background:#f59e0b}.heat .c.r{background:#fecaca}
 .heat .lb{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:6px;cursor:pointer}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:12px}
+.vcard{background:#fff;border:1px solid #e5e7eb;border-top:6px solid #d1d5db;border-radius:12px;padding:12px 14px}
+.vcard.green{border-top-color:#16a34a}.vcard.orange{border-top-color:#f59e0b}.vcard.red{border-top-color:#FE1B04}
+.vcard .vt{font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.03em}.vcard b{display:block;font-size:28px;line-height:1.2;margin:2px 0}
+.vcard.green b{color:#15803d}.vcard.orange b{color:#c2410c}.vcard.red b{color:#d11200}.vcard .vs{font-size:13px;color:#374151}
+.jrow{display:grid;grid-template-columns:minmax(140px,230px) 1fr 60px 120px;gap:10px;align-items:center;margin:7px 0}
 </style>
 </head>
 <body>
@@ -91,11 +97,15 @@
 </header>
 <main>
   <section id="t-overview">
-    <div class="card"><div class="row"><b>Where every sales campaign stands</b><span class="sp"></span><span class="muted" id="ovAt"></span><button class="b" id="ovRefresh">Refresh</button></div><div class="muted" id="ovWarn"></div></div>
-    <div class="hv-kpis" id="ovKpis"></div>
-    <div class="card wrap"><b>Campaigns</b> <span class="muted">· contacts in Streak GC Campaigns (H01 from Harvey) → deals in GC Pipeline → signed in GC Clients</span><table id="ovCamp"></table></div>
-    <div class="card"><div class="row"><b>New leads per day — last 14 days</b><span class="sp"></span><span class="muted" id="ovTarget"></span></div><div class="bars" id="ovBars" style="position:relative"></div><div class="row muted" style="font-size:11px"><span id="ovD0"></span><span class="sp"></span><span id="ovD1"></span></div></div>
-    <div class="card"><b>GC Pipeline — open deals by stage</b><div id="ovPipe"></div></div>
+    <div class="card"><div class="row"><b id="ovHead">Where every sales campaign stands</b><span class="sp"></span><span class="muted" id="ovAt"></span><button class="b" id="ovRefresh">Refresh</button></div><div class="muted" id="ovWarn"></div></div>
+    <div class="vgrid" id="ovVerdict"></div>
+    <div class="card"><b>From first contact to signed client</b><div class="muted" style="font-size:12px">All campaigns together. Each bar is how many companies reached that step; the % is how many made it from the step before.</div><div id="ovJourney" style="margin-top:10px"></div></div>
+    <div class="card"><div class="row"><b>Campaign health</b><span class="sp"></span><span class="legend" style="margin:0"><span><span class="dot green"></span> activity in the last 3 days</span><span><span class="dot orange"></span> more than 3 days</span><span><span class="dot red"></span> more than 6 days</span></span></div><div class="hgrid" id="ovHealth" style="margin-top:10px"></div></div>
+    <div class="card"><b>Results by campaign</b><div class="muted" style="font-size:12px">Companies contacted per campaign, split by whether they answered. Click a row to open the campaign.</div><div id="ovStack" style="margin-top:8px"></div><div class="legend"><span><i style="background:#16a34a"></i>answered (replied, call, pitched)</span><span><i style="background:#FE1B04"></i>no answer yet</span></div></div>
+    <div class="card"><div class="row"><b>New leads per day — last 14 days</b><span class="sp"></span><span class="muted" id="ovTarget"></span></div><div class="bars tall" id="ovBars"></div><div class="dlab" id="ovDays"></div><div class="legend"><span><i style="background:#16a34a"></i>target met</span><span><i style="background:#f59e0b"></i>at least half the target</span><span><i style="background:#FE1B04"></i>under half</span><span><i style="border-top:2px dashed #111827;height:0;opacity:.5"></i>target</span></div></div>
+    <div class="card"><b>Open deals by stage (GC Pipeline)</b><div id="ovPipe" style="margin-top:8px"></div><div class="legend"><span><i style="background:#f59e0b"></i>early (lead → pitched)</span><span><i style="background:#16a34a"></i>proposal sent / nurturing</span><span><i style="background:#FE1B04"></i>negotiating / closing — act now</span></div></div>
+    <div class="card wrap"><b>All numbers</b><table id="ovCamp"></table></div>
+    <div class="muted" style="margin:4px 2px 16px">Source: Streak GC Campaigns (contacts, by Origin = campaign code), GC Pipeline (deals) and GC Clients (signed); H01 comes from Harvey. Colours: green = on track, orange = watch, red = needs you.</div>
   </section>
   <section id="t-chat" style="display:none">
     <div class="card"><div id="log"><div class="msg muted">Ask about the pipeline: “Who should I follow up this week?”, “Where are we with TEPCOMP?”, “Which proposals have been silent for 60+ days?”</div></div></div>
@@ -160,7 +170,7 @@
 </div>
 </div>
 <script>
-const APP_VERSION='v1.5.0';
+const APP_VERSION='v1.5.1';
 const $=s=>document.querySelector(s);
 document.querySelectorAll('.appver').forEach(e=>e.textContent=APP_VERSION);
 const TITLES={overview:'Overview',camps:'Campaigns',camp:'Campaign',harvey:'Harvey — Campaign H01',chat:'Chat',due:'Due follow-ups',drafts:'Drafts',funnel:'Funnel',pipe:'Pipeline',settings:'Settings'};
@@ -236,25 +246,51 @@ async function loadFunnel(refresh){
 }
 $('#fcRefresh').onclick=()=>loadFunnel(true);
 
-/* ---------- Overview: all campaigns on one page ---------- */
+/* ---------- Overview: all campaigns on one page (colour-coded, v1.5.1) ---------- */
+const OVH=d=>d==null||d>6?'red':d>3?'orange':'green';
+const OVL=d=>d==null?'no activity':d<=0?'active today':d===1?'active yesterday':d+' days without activity';
+const OVGO=c=>/^CC\d+$/i.test(c)?'camp-'+c.toUpperCase():/^H01$/i.test(c)?'harvey':'funnel';
 async function loadOverview(refresh){
   $('#ovAt').textContent='Loading…';
   let o;try{o=await api('/api/overview'+(refresh?'?refresh=1':''))}catch(e){$('#ovAt').textContent='';$('#ovWarn').textContent=e.message;return}
   $('#ovAt').textContent='Updated '+new Date(o.generated_at).toLocaleString();
   $('#ovWarn').textContent=(o.warnings||[]).join(' · ');
-  const k=o.kpis,T=(n,l,hot)=>`<div class="hv-k${hot?' hot':''}"><b>${fmt(n)}</b><span>${esc(l)}</span></div>`;
-  $('#ovKpis').innerHTML=T(k.campaigns,'Active campaigns')+T(k.contacted,'Companies contacted')+T(k.responded,'Responded'+(k.response_rate!=null?' ('+k.response_rate+'%)':''))+T(k.calls,'Calls / meetings')+T(k.new_leads_7d,'New leads, last 7 days (target '+k.target_7d+')',k.new_leads_7d<k.target_7d)+T(k.open_deals,'Open deals (GC Pipeline)')+T(k.proposal_plus,'Proposal sent or later')+T(k.hot,'Negotiating / closing',k.hot>0)+T(k.clients_active,'Active clients')+(k.radar_pushed!=null?T(k.radar_pushed,'Radar → Botdog (all time)'):'');
-  const st=d=>d==null?'—':d<=0?'today':d===1?'yesterday':d+'d ago';
-  $('#ovCamp').innerHTML='<tr><th>Campaign</th><th>Contacted</th><th>Responded</th><th class="hide-sm">Calls</th><th class="hide-sm">New 7d</th><th>Deals</th><th class="hide-sm">Proposal+</th><th class="hide-sm">Clients</th><th class="hide-sm">Last activity</th></tr>'+o.campaigns.map(r=>{
-    const extra=r.src==='Harvey'?` <span class="muted">· ${r.waiting_approval||0} to approve · ${r.followup_due||0} follow-ups due</span>`:'';
-    const stale=r.stale_days!=null&&r.stale_days>7;
-    return `<tr><td><b>${esc(r.label)}</b>${extra}</td><td>${fmt(r.contacted)}</td><td>${fmt(r.responded)}${r.response_rate!=null?` <span class="muted">${r.response_rate}%</span>`:''}</td><td class="hide-sm">${r.calls||''}</td><td class="hide-sm">${r.new7||''}</td><td>${r.deals||''}${r.hot?` <span class="tag">${r.hot} hot</span>`:''}</td><td class="hide-sm">${r.proposal||''}</td><td class="hide-sm">${r.clients?r.clients+(r.active_clients?' ('+r.active_clients+' active)':''):''}</td><td class="hide-sm"${stale?' style="color:#d11200"':''}>${st(r.stale_days)}</td></tr>`}).join('');
-  const top=Math.max(o.daily_target,...o.daily.map(d=>d.n));
-  $('#ovBars').innerHTML=o.daily.map(d=>`<div title="${d.day}: ${d.n}" style="height:${Math.max(2,100*d.n/top)}%;${d.n<o.daily_target?'opacity:.45':''}"></div>`).join('')+`<span style="position:absolute;left:0;right:0;bottom:${100*o.daily_target/top}%;border-top:1px dashed #1d1d1f"></span>`;
-  $('#ovTarget').textContent='dashed line = target '+o.daily_target+'/day';
-  $('#ovD0').textContent=o.daily[0].day;$('#ovD1').textContent=o.daily[o.daily.length-1].day;
-  const pm=Math.max(1,...o.pipeline.map(s=>s.n));
-  $('#ovPipe').innerHTML=o.pipeline.map(s=>`<div style="display:grid;grid-template-columns:140px 1fr 50px;gap:10px;align-items:center;margin:6px 0"><span>${esc(s.name.replace(/^\d+\.\s*/,''))}</span><div style="background:#f1f1f3;border-radius:6px;height:16px"><div style="width:${Math.max(.6,100*s.n/pm)}%;height:16px;border-radius:6px;background:#FE1B04"></div></div><b style="text-align:right">${s.n}</b></div>`).join('')+`<div class="muted">${o.recycled_deals} recycled deals not shown.</div>`;
+  const k=o.kpis,C=o.campaigns.map(r=>({...r,health:OVH(r.stale_days)}));
+  const cnt=h=>C.filter(r=>r.health===h).length;
+  $('#ovHead').innerHTML=`${C.length} campaigns · <span class="dot green"></span> ${cnt('green')} · <span class="dot orange"></span> ${cnt('orange')} · <span class="dot red"></span> ${cnt('red')}`;
+  // 1. Verdict: four traffic-light cards that say in words how things are going
+  const V=(col,title,big,sub)=>`<div class="vcard ${col}"><div class="vt">${esc(title)}</div><b>${big}</b><div class="vs">${sub}</div></div>`;
+  const lp=k.target_7d?Math.round(100*k.new_leads_7d/k.target_7d):0;
+  const leadC=k.new_leads_7d>=k.target_7d?'green':k.new_leads_7d>=k.target_7d/2?'orange':'red';
+  const rr=k.response_rate,rrC=rr==null?'red':rr>=5?'green':rr>=1?'orange':'red';
+  const dealC=k.hot>0?'green':k.proposal_plus>0?'orange':'red';
+  const runC=cnt('red')===0?'green':cnt('green')>=cnt('red')?'orange':'red';
+  $('#ovVerdict').innerHTML=
+    V(leadC,'New leads this week',fmt(k.new_leads_7d)+' <span style="font-size:15px;color:#6b7280;font-weight:400">/ '+k.target_7d+'</span>',`${lp}% of the weekly target · ${leadC==='green'?'on track':leadC==='orange'?'behind — push volume':'far behind — needs you'}`)+
+    V(rrC,'Reply rate',rr==null?'—':rr+'%',`${fmt(k.responded)} answered out of ${fmt(k.contacted)} contacted · ${rrC==='green'?'good':rrC==='orange'?'low — check the message':'very low'}`)+
+    V(dealC,'Deals moving',fmt(k.hot)+' <span style="font-size:15px;color:#6b7280;font-weight:400">hot</span>',`${fmt(k.proposal_plus)} with a proposal · ${fmt(k.open_deals)} open deals · ${fmt(k.clients_active)} active clients`)+
+    V(runC,'Campaigns running',cnt('green')+' <span style="font-size:15px;color:#6b7280;font-weight:400">of '+C.length+' active</span>',`${cnt('orange')} slowing down · ${cnt('red')} stopped (6+ days idle)`);
+  // 2. Journey: one funnel for all campaigns
+  const steps=[['Contacted',k.contacted,'companies reached'],['Answered',k.responded,'replied, call or pitched'],['Call / meeting',k.calls,'call booked or held'],['Open deal',k.open_deals,'in GC Pipeline'],['Proposal sent',k.proposal_plus,'proposal or later'],['Negotiating / closing',k.hot,'closest to signing'],['Active client',k.clients_active,'in GC Clients']];
+  const jt=Math.max(1,k.contacted||0),jc=i=>i<2?'#f59e0b':'#16a34a';
+  $('#ovJourney').innerHTML=steps.map(([l,n,h],i)=>{const p=i?steps[i-1][1]:0;const conv=i&&p?Math.round(1000*n/p)/10+'%':'';return `<div class="jrow"><span><b>${esc(l)}</b> <span class="muted" style="font-size:12px">· ${esc(h)}</span></span><div style="background:#f1f1f3;border-radius:6px;height:20px"><div style="width:${Math.max(.6,100*(n||0)/jt)}%;height:20px;border-radius:6px;background:${jc(i)}"></div></div><b style="text-align:right">${fmt(n)}</b><span class="muted" style="text-align:right;font-size:12px">${conv?conv+' of previous':''}</span></div>`}).join('');
+  // 3. Health tiles
+  $('#ovHealth').innerHTML=C.map(r=>`<div class="htile ${r.health}" onclick="show('${OVGO(r.code)}')"><b>${esc(r.code)} <span class="st ${r.health}" style="float:right">${esc(OVL(r.stale_days))}</span></b><div class="nm">${esc(r.label.replace(/^\S+\s·\s/,''))}</div><div class="nums">${fmt(r.contacted)} contacted · ${r.new7} this week · ${r.responded} answered · ${r.deals} deals${r.src==='Harvey'&&(r.waiting_approval||r.followup_due)?` · <span style="color:#d11200">${r.waiting_approval||0} to approve</span>`:''}</div></div>`).join('');
+  // 4. Results stack per campaign
+  const smx=Math.max(1,...C.map(r=>r.contacted));
+  $('#ovStack').innerHTML=C.map(r=>{const yes=Math.min(r.responded,r.contacted),no=Math.max(0,r.contacted-yes),w=v=>100*v/smx;return `<div class="srow" onclick="show('${OVGO(r.code)}')"><span><span class="dot ${r.health}"></span> <b>${esc(r.code)}</b> <span class="muted">${r.response_rate!=null?r.response_rate+'% reply':''}${r.deals?' · '+r.deals+' deal'+(r.deals>1?'s':''):''}${r.clients?' · '+r.clients+' client'+(r.clients>1?'s':''):''}</span></span><div class="stack" style="background:transparent"><div style="width:${w(yes)}%;background:#16a34a" title="${yes} answered"></div><div style="width:${w(no)}%;background:#FE1B04" title="${no} no answer yet"></div></div><b style="text-align:right">${fmt(r.contacted)}</b></div>`}).join('');
+  // 5. Daily bars coloured vs target
+  const A=o.daily,t=o.daily_target;
+  $('#ovBars').innerHTML=barsHTML(A,'n',t);$('#ovDays').innerHTML=dayLabels(A);
+  $('#ovTarget').textContent=`Target ${t}/day — met ${A.filter(a=>a.n>=t).length} of 14 days · ${A.slice(-7).reduce((s,a)=>s+a.n,0)} this week`;
+  // 6. Pipeline by stage, coloured by how close to signing
+  const pm=Math.max(1,...o.pipeline.map(s=>s.n)),pc={early:'#f59e0b',proposal:'#16a34a',hot:'#FE1B04'};
+  $('#ovPipe').innerHTML=o.pipeline.map(s=>`<div class="jrow" style="grid-template-columns:minmax(120px,170px) 1fr 50px"><span>${esc(s.name.replace(/^\d+\.\s*/,''))}</span><div style="background:#f1f1f3;border-radius:6px;height:18px"><div style="width:${Math.max(.6,100*s.n/pm)}%;height:18px;border-radius:6px;background:${pc[/^50(05|15)$/.test(s.stage)?'hot':/^50(11|13)$/.test(s.stage)?'proposal':'early']}"></div></div><b style="text-align:right">${s.n}</b></div>`).join('')+`<div class="muted" style="font-size:12px">${o.recycled_deals} recycled deals not shown.</div>`;
+  // 7. Full numbers table, with colour chips
+  const rc=v=>v==null?'':v>=5?'green':v>=1?'orange':'red';
+  $('#ovCamp').innerHTML='<tr><th>Campaign</th><th>Contacted</th><th>Answered</th><th class="hide-sm">Calls</th><th class="hide-sm">New 7d</th><th>Deals</th><th class="hide-sm">Proposal+</th><th class="hide-sm">Clients</th></tr>'+C.map(r=>{
+    const extra=r.src==='Harvey'?`<div class="muted">${r.waiting_approval||0} to approve · ${r.followup_due||0} follow-ups due</div>`:'';
+    return `<tr class="lead" style="cursor:pointer" onclick="show('${OVGO(r.code)}')"><td><span class="dot ${r.health}"></span> <b>${esc(r.label)}</b> <span class="st ${r.health}">${esc(OVL(r.stale_days))}</span>${extra}</td><td>${fmt(r.contacted)}</td><td><b>${fmt(r.responded)}</b>${r.response_rate!=null?` <span class="st ${rc(r.response_rate)}">${r.response_rate}%</span>`:''}</td><td class="hide-sm">${r.calls||''}</td><td class="hide-sm">${r.new7||''}</td><td>${r.deals||''}${r.hot?` <span class="st red">${r.hot} hot</span>`:''}</td><td class="hide-sm">${r.proposal||''}</td><td class="hide-sm">${r.clients?r.clients+(r.active_clients?' ('+r.active_clients+' active)':''):''}</td></tr>`}).join('');
 }
 $('#ovRefresh').onclick=()=>loadOverview(true);
 
