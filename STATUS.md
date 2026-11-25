@@ -1,5 +1,5 @@
 # STATUS — sales.gershon.ai (Sales by Gershon.AI)
-Last updated: 2026-11-24 · v1.5.2
+Last updated: 2026-11-24 · v1.6.0
 
 Deploy: push to `main` → Cloudflare Workers Builds (Worker `sales-gershon`). Details: HANDOFF.txt.
 
@@ -15,7 +15,10 @@ Deploy: push to `main` → Cloudflare Workers Builds (Worker `sales-gershon`). D
 - ✅ v1.5.1 Overview redesigned in the All-campaigns style: 4 traffic-light verdict cards (leads vs target, reply rate, deals moving, campaigns running), one funnel contact → client, health tiles, results-by-campaign bars, coloured daily bars vs target, pipeline stages coloured early/proposal/hot, clickable rows → campaign page (front-end only, same /api/overview data)
 - ✅ v1.5.2 Due page explains itself: rule per stage, "nothing is sent from here", link to Drafts; buttons renamed Draft email / Draft LinkedIn / Draft emails for all
 
+- ✅ v1.6.0 Botdog: API key box in Settings + daily status of every Botdog campaign (invited / accepted / replies, never-started campaigns in red)
+
 ## Open ❌
+- ❌ Botdog API key to be pasted in Settings by Olivier
 - ❌ v1.4.2 Settings page held for Olivier's OK (API key = secrets rule); then Olivier pastes the Streak key once.
 - ❌ RADAR_FUNNEL_TOKEN worker secret (Radar part of the Funnel page)
 - ❌ Clean false "2. Responded" boxes in Streak GC Campaigns (flagged on campaign pages)
