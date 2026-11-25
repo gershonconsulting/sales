@@ -1,6 +1,12 @@
 sales.gershon.ai — Sales by Gershon.AI — HANDOFF (updated 2026-11-23, v1.4.2)
 ==============================================================================
 
+2026-11-24 (v1.6.0) — Botdog key + campaign status
+✅ Settings → Botdog card: paste the Botdog API key (checked against api.botdog.co/v1/campaigns, stored in D1 settings botdog_api_key, never returned).
+✅ Sync on save, "Sync now", and the 06:00 UTC cron: GET /v1/campaigns + /v1/campaigns/{id}/statistics (non-archived, max 40) → D1 settings botdog_status.
+✅ Card shows totals + one row per campaign; CREATED campaigns holding leads flagged "never started". Code src/botdog.js, test/botdog.test.mjs.
+❌ Key not saved yet. Next: feed botdog_status into Overview/Funnel instead of Radar's stale audit_botdog_leads (frozen 2026-10-19).
+
 2026-11-21 STATUS (read first)
 ✅ v1.4.1 is LIVE (Claude campaigns pages, PR #11). Merging to main auto-deploys in ~5 min (Cloudflare Workers Builds, reconnected 2026-11-10); read the live version from APP_VERSION (sidebar pill / footer).
 ✅ The GitHub connector's push_files WORKS for this repo (the older "push_files → 403" note below is outdated). Still not possible from the cloud: .github/workflows writes and plain git push (403).

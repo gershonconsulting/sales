@@ -4,6 +4,7 @@ import { harveyMachine, harveyUser } from './harvey.js';
 import { buildOverview } from './campaigns.js';
 import { campaignsApi, refreshCampaigns } from './claude-campaigns.js';
 import { withKeys, settingsView, saveStreakKey, removeStreakKey } from './settings.js';
+import { botdogView, saveBotdogKey, removeBotdogKey, syncBotdog } from './botdog.js';
 const MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 const STAGES = { '5001': '1. Lead', '5002': '2. Contacted', '5010': '3. Scheduled', '5003': '4. Pitched', '5011': '5. Proposal Sent', '5013': '6. Nurturing', '5005': '7. Negotiating', '5015': '8. Closing', '5012': '9. Recycled' };
 // follow-up rhythm in days per stage
@@ -33,7 +34,16 @@ export default {
       if (!user) return p.startsWith('/oauth') ? Response.redirect(url.origin + '/', 302) : json({ error: 'unauthorized' }, 401);
       if (p === '/oauth/google/start') return googleStart(env, url);
       env = await withKeys(env); // Streak key saved in Settings wins over the Cloudflare variable
-      if (p === '/api/settings') return json(await settingsView(env));
+      if (p === '/api/settings') return json({ ...(await settingsView(env)), botdog: await botdogView(env) });
+      if (p === '/api/settings/botdog' && post) {
+        const b = await req.json().catch(() => ({}));
+        try { await saveBotdogKey(env, b.key); } catch (e) { return json({ error: String(e.message || e) }, 400); }
+        let syncError = null;
+        try { await syncBotdog(env); } catch (e) { syncError = String(e.message || e); }
+        return json({ ok: true, sync_error: syncError, botdog: await botdogView(env) });
+      }
+      if (p === '/api/settings/botdog/remove' && post) { await removeBotdogKey(env); return json({ ok: true, botdog: await botdogView(env) }); }
+      if (p === '/api/botdog/sync' && post) { await syncBotdog(env); return json({ ok: true, botdog: await botdogView(env) }); }
       if (p === '/api/settings/streak' && post) {
         const b = await req.json().catch(() => ({}));
         let saved;
@@ -79,6 +89,7 @@ export default {
   },
   async scheduled(event, env, ctx) {
     env = await withKeys(env);
+    if (event.cron === '0 6 * * *') ctx.waitUntil(syncBotdog(env).catch(() => null));
     if (event.cron === '0 6 * * *') ctx.waitUntil(syncStreak(env).then(() => funnel(env, true)).then(() => overview(env, true)).then(() => refreshCampaigns(env, streak)));
     if (event.cron === '0 10 * * 1') ctx.waitUntil(syncStreak(env).then(() => weekly(env)));
   },
